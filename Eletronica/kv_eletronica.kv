@@ -1,0 +1,1020 @@
+#:import Factory kivy.factory.Factory
+
+
+<Manager>:
+    orientation:'vertical'
+    # Widget dos botões do top
+    BoxLayout:
+        size_hint_y:.2
+        padding:12
+        spacing:11
+        canvas:
+            Color:
+                rgba:.0,.33,.42,.5
+            Rectangle:
+                size:self.width, self.height - 8
+                pos:self.x, self.y + 7
+            Color:
+                rgba:.23,.33,.12,1
+            Rectangle:
+                size:self.width,3
+                pos:self.pos
+        Button:
+            size_hint_x:None
+            width:'50dp'
+            text:'Inicial'
+            on_release:manager.current = 'screenimage'
+        MDRectangleFlatIconButton:
+            size_hint_y:1
+            text:'Login'
+            font_size:'30dp'
+            bold:True
+            icon:'login'
+            on_press:manager.transition = Factory.get('FadeTransition')()
+            on_release:manager.current = 'screenlogin'
+
+        MDRectangleFlatIconButton:
+            size_hint_y:1
+            icon:'account'
+            text:'Cadastro'
+            bold:True
+            font_size:'30dp'
+            on_press:manager.transition = Factory.get('WipeTransition')()
+            on_release:manager.current = 'screenregister'
+
+        MDRectangleFlatIconButton:
+            size_hint_y:1
+            icon:'login'
+            font_size:'30dp'
+            bold:True
+            text:'Serviços'
+            on_press:manager.transition = Factory.get('SwapTransition')()
+            on_release:manager.current = 'screenview'
+        MDRectangleFlatIconButton:
+            size_hint_y:1
+            icon:'login'
+            font_size:'30dp'
+            bold:True
+            text:'Estoque'
+            on_press:manager.transition = Factory.get('FadeTransition')()
+            on_release:manager.current = 'screenestoque'
+
+    ScreenManager:
+        id:manager
+        canvas:
+            Color:
+#                rgba:0,.1,.2,.1
+                rgba:1,1,1,.7
+            Rectangle:
+                size:self.width, self.height - 8
+                pos:self.x, self.y + 8
+            Color:
+                rgba:.23,.33,.12,1
+            Rectangle:
+                size:self.width, 3
+                pos:self.pos
+
+#        ScreenImage:
+#            name:'screenimage'
+#        ScreenRegister:
+#            name:'screenregister'
+#        ScreenLogin:
+#            name:'screenlogin'
+#        ScreenView:
+#            name:'screenview'
+#        ScreenEstoque
+#            name:'screenestoque'
+#        EditDevice:
+#            name:'editdevice'
+
+        ScreenEstoque:
+
+
+<ScreenImage>:
+    BoxLayout:
+        size_hint_x:1
+        padding:20
+        Image:
+            size_hint_x:self.width + 100
+            source:'image/image.jpg'
+            allow_stretch:True
+
+<ScreenLogin>:
+# === Tela Login
+    FloatLayout:
+        BoxLayout:
+            size_hint_y:None
+            height:'20dp'
+            pos_hint:{'x':.0,'center_y':.93}
+            canvas:
+                Color:
+                    rgba:1,1,1,0
+                Rectangle:
+                    size:self.size
+                    pos:self.pos
+                Color:
+                    rgba:.5,0,0,5
+                Rectangle:
+                    size:self.width,2
+                    pos:self.pos
+            MDLabel:
+                pos_hint:{'center_y':.95}
+                italic:True
+#                outline_width:1
+#                outline_color:0,0,0,1
+                text:'Tela Login Clientes'
+                font_size:'35dp'
+                color:.5,0,0,5
+# ===== Nome
+        FloatLayout:
+            MDCard:
+                orientation:'vertical'
+                md_bg_color:1,1,1,.2
+                elevation:2
+                size_hint:None,None
+                width:'650dp'
+                height:'450dp'
+                pos_hint:{'center_x':.5,'center_y':.5}
+                radius:11,11,11,11
+                FloatLayout:
+                    id:float_layout
+                    MDLabel:
+                        size_hint_x:None
+                        width:'1000dp'
+                        halign:'center'
+                        pos_hint:{'center_y':.7}
+                    MDTextField:
+                        size_hint_x:None
+                        width:'200dp'
+                        mode:'rectangle'
+                        hint_text:'CPF:'
+                        font_size:'30sp'
+                        max_text_length:11
+#                        color_mode:'custom'
+                        line_color_focus:0,0,0,1
+                        pos_hint:{'center_x':.5,'center_y':.7}
+    #                    line_color_normal: app.theme_cls.accent_color
+                        id:login_cpf
+                    MDFillRoundFlatIconButton:
+                        pos_hint:{'center_x':.5,'center_y':.55}
+                        halign:'center'
+                        text:'Limpar'
+                        icon:'api-off'
+                        on_release:root.ids.login_cpf.text = ''
+                    MDLabel:
+                        id:warning
+                        halign:'center'
+                        pos_hint:{'center_x':.5}
+                        font_size:'35sp'
+                        color: .4,0,0,1
+
+
+            MDFillRoundFlatIconButton:
+                pos_hint:{'right':.97,'center_y':.1}
+                text:'Pesquisar'
+                icon:'account-check'
+#                on_release:root.get_data_cliente()
+                on_release:root.content_base()
+
+<ScreenRegister>:
+# === Tela Cadastro
+    FloatLayout:
+        BoxLayout:
+            size_hint_y:None
+            height:'20dp'
+            pos_hint:{'x':.0,'center_y':.93}
+            canvas:
+                Color:
+                    rgba:1,1,1,0
+                Rectangle:
+                    size:self.size
+                    pos:self.pos
+                Color:
+                    rgba:.5,0,0,5
+                Rectangle:
+                    size:self.width,2
+                    pos:self.pos
+            Label:
+                size_hint_x:None
+                width:'250dp'
+                pos_hint:{'center_y':.95}
+                italic:True
+#                outline_width:1
+#                outline_color:0,0,0,1
+                text:'Tela Cadastro'
+                font_size:'35dp'
+                color:.5,0,0,5
+# ===== Nome
+        FloatLayout:
+            MDCard:
+                orientation:'vertical'
+                md_bg_color:1,1,1,.2
+                elevation:2
+                size_hint:None,None
+                width:'650dp'
+                height:'450dp'
+                pos_hint:{'center_x':.5,'center_y':.5}
+                radius:11,11,11,11
+                MDLabel:
+                    font_size:'25sp'
+                    halign:'center'
+                    color:.7,0,0,1
+                    bold:True
+                    id:label_warning
+                MDTextField:
+                    size_hint_x:None
+                    width:'400dp'
+                    hint_text:'Nome:'
+                    required:True
+                    helper_text_mode:'on_error'
+                    helper_text:'* Obrigatório'
+                    line_color_focus:0,0,0,1
+                    mode:'rectangle'
+                    pos_hint:{'x':.1,'center_y':.3}
+                    id:cadastro_nome
+                MDTextField:
+                    size_hint_x:None
+                    width:'200dp'
+                    mode:'rectangle'
+                    hint_text:'CPF:'
+                    max_text_length:11
+                    line_color_focus:0,0,0,1
+                    pos_hint:{'x':.1,'center_y':.8}
+#                    line_color_normal: app.theme_cls.accent_color
+                    id:cadastro_cpf
+                MDBoxLayout:
+                    size_hint_y:None
+                    height:'50dp'
+                    pos_hint:{'x':.1}
+                    MDTextField:
+                        size_hint_x:None
+                        width:'400dp'
+                        hint_text:'Logradouro:'
+#                        color_mode:'custom'
+                        line_color_focus: 0,0,0,1
+                        mode:'rectangle'
+                        pos_hint:{'x':.1}
+                        icon_right: "arrow-down-drop-circle-outline"
+                        icon_right_color: app.theme_cls.primary_color
+                        id:cadastro_logradouro
+
+                MDBoxLayout:
+                    size_hint_y:None
+                    height:'60dp'
+                    spacing:30
+                    pos_hint:{'x':.1}
+                    MDTextField:
+                        size_hint_x:None
+                        width:'400dp'
+                        hint_text:'Endereço:'
+                        pos_hint:{'x':.1}
+                        mode:'rectangle'
+                        line_color_focus:0,0,0,1
+                        id:cadastro_endereco
+
+                    MDTextField:
+                        size_hint_x:None
+                        width:'100dp'
+                        mode:'rectangle'
+                        hint_text:'N°:'
+                        pos_hint:{'x':.1}
+                        line_color_focus:0,0,0,1
+                        id:cadastro_numero
+                MDTextField:
+                    size_hint_x:None
+                    width:'530dp'
+                    mode:'rectangle'
+                    hint_text:'Bairro'
+                    line_color_focus:0,0,0,1
+                    pos_hint:{'x':.1}
+                    id:cadastro_bairro
+
+
+                MDTextField:
+                    size_hint_x:None
+                    width:'200dp'
+                    pos_hint:{'x':.1}
+                    mode:'rectangle'
+                    hint_text:'Tel:'
+                    max_text_length:8
+                    line_color_focus:0,0,0,1
+                    id:cadastro_telefone
+
+                MDTextField:
+                    size_hint_x:None
+                    width:'200dp'
+                    pos_hint:{'x':.1}
+                    mode:'rectangle'
+                    hint_text:'Celular:'
+                    line_color_focus:0,0,0,1
+                    id:cadastro_celular
+
+                MDTextField:
+                    size_hint_x:None
+                    width:'400dp'
+                    font_size:'30sp'
+                    pos_hint:{'x':.1}
+                    hint_text:'Email:'
+                    id:cadastro_email
+                    line_color_normal:1,.8,0,1
+                    color_mode:'accent'
+
+
+            Button:
+                size_hint:None,None
+                width:'150dp'
+                height:'50dp'
+                pos_hint:{'right':.97,'center_y':.1}
+                text:'Salvar'
+                on_release:root.cadastro()
+
+
+# Tela ScreenView =============
+<ScreenView>:
+    MDBoxLayout:
+        spacing:'11dp'
+        padding:'15dp'
+        MDCard:
+            size_hint:.9,.9
+            radius: 11,11,11,11
+            elevation:2
+            md_bg_color:1,1,1,.5
+            pos_hint:{'center_y':.5}
+            orientation:'vertical'
+            elevation:7
+            id:mdcard_view
+
+            MDLabel:
+                size_hint_y:None
+                height:'45dp'
+                font_size:'30sp'
+                outline_color:0,.2,.8,1
+                outline_width:2
+                color:1,1,1,5
+                halign:'center'
+                id:title_client
+            MDLabel:
+                color:1,0,0,1
+                halign: 'center'
+                font_size:'20sp'
+                id:see_register
+                Widget:
+            MDFillRoundFlatIconButton:
+                text:'Inserir aparelho'
+                pos_hint:{'center_x':.5}
+                icon:'exit-to-app'
+                on_release:root.popup_incerir_aparelho()
+
+
+        MDCard:
+            orientation:'vertical'
+            size_hint:.9,.9
+            pos_hint:{'center_y':.5}
+            radius:11,11,11,11
+            elevaton:'7dp'
+            md_bg_color:1,1,1,.5
+
+# === Aparelho
+            MDLabel:
+                size_hint_y:None
+                height:'30dp'
+                color:0,0,0,1
+                text:'Aparelhos Relacionados'
+                halign:'center'
+                font_size:'30sp'
+                bold:True
+
+#            Widget:
+       # here receive the class "Box_View" and the buttons
+            ScrollView:
+                orientation:'vertical'
+                GridLayout:
+                    size_hint_y:None
+                    height:self.minimum_height
+                    cols:2
+                    spacing:'20dp'
+                    padding:'20dp'
+                    id: scroll
+
+<ButtonRegister>:
+    icon:'exit-to-app'
+    text:'Faser Cadastro'
+    pos_hint:{'center_x':.5,'center_y':.1}
+    on_release:root.enter()
+
+
+<View_device>:
+    MDCard:
+        orientation:'vertical'
+        radius:5,22,5,22
+        elevation:'11dp'
+        MDLabel:
+            size_hint_y:None
+            height:'17dp'
+            color:0,0,0,1
+            id:data
+        MDLabel:
+            markup:True
+            font_size:'20dp'
+            color:1,1,1,1
+            halign:'center'
+            id:content_device
+        MDRectangleFlatButton:
+            text:'Edit'
+            pos_hint:{'center_x':.9}
+            on_press:root.go_edit()
+#            on_release:app.Box_View().text_of_button.pop.dismiss
+
+<EditDevice>:
+    FloatLayout:
+        MDCard:
+            size_hint:None,None
+            size:300,300
+            pos_hint:{'x':.01,'top':.99}
+            md_bg_color:app.theme_cls.primary_color
+            radius:7,7,7,7
+
+        # panel of display of client
+        # Painel de mostragem do cliente
+            MDLabel:
+                bold:True
+#                color:1,1,1,1
+                halign:'center'
+                id:see_user_device
+        # /Painel
+
+        MDTextField:
+            hint_text:'Modelo aparelho'
+            size_hint_x: None
+            width:'300dp'
+            pos_hint:{'x':.3, 'center_y':.9}
+            id:modelo
+
+        MDTextField:
+            hint_text:'Marca'
+            size_hint_x: None
+            width:'300dp'
+            pos_hint:{'x':.3, 'center_y':.8}
+            on_focus: if self.focus:root.dropdownmenu()
+            id:id_marca
+
+        MDTextField:
+            size_hint_x:None
+            width:'300dp'
+            hint_text:'Serial'
+            pos_hint:{'x':.3,'center_y':.7}
+            id: serial
+
+        MDRoundFlatIconButton:
+            pos_hint:{'x':.35,'center_y':.6}
+            icon:'television-stop'
+            id:cituacao
+
+        BoxLayout:
+            size_hint:None,None
+            width:'300dp'
+            height:'30dp'
+            pos_hint:{'x':.3,'center_y':.5}
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Orçamento'
+                    color:25,21,0,1
+                    id:txt_orcamento
+                CheckBox:
+                    group:'grup'
+                    active:False
+                    on_active:root.situacao(txt_orcamento.text)
+                    id:orcamento
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Arrumar'
+                    color:0,.5,0,1
+                    id:txt_arrumar
+                CheckBox:
+                    group:'grup'
+                    active:False
+                    on_active:root.situacao(txt_arrumar.text)
+                    id:arrumar
+
+
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Devolver'
+                    color:.8,.3,0,1
+                    active:False
+                    id:txt_devolver
+                CheckBox:
+                    group:'grup'
+                    on_active:root.situacao(txt_devolver.text)
+                    id:devolver
+        BoxLayout:
+            size_hint:None,None
+            width:'300dp'
+            height:'30dp'
+            pos_hint:{'x':.3,'center_y':.4}
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Arrumado'
+                    color:25,21,0,1
+                    id:txt_arrumado
+                CheckBox:
+                    group:'grup'
+                    active:False
+                    on_active:root.situacao(txt_arrumado.text)
+                    id:arrumado
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Entregue'
+                    color:25,21,0,1
+                    id:txt_entregue
+                CheckBox:
+                    group:'grup'
+                    active:False
+                    on_active:root.situacao(txt_entregue.text)
+                    id:entregue
+
+        MDTextField:
+            size_hint:.3,.3
+            pos_hint:{'x':.64,'center_y':.80}
+            hint_text: "Defeitos!"
+            max_text_length:200
+            mode: "fill"
+            fill_color: 0, 0, 0, .4
+            multiline: True
+            id:defeito
+
+        MDCard:
+            orientation:'vertical'
+            size_hint:None,None
+            width:'340dp'
+            height:'200dp'
+            pos_hint:{'x':.65,'y':.25}
+            radius:11,11,11,11
+
+            MDLabel:
+                size_hint_y:None
+                height:'30sp'
+                font_size:'20sp'
+                bold:True
+                text:'Valor do conserto!'
+            BoxLayout:
+                orientation:'vertical'
+                FloatLayout:
+                    MDTextFieldRect:
+                        font_size:'20sp'
+                        hint_text:'$'
+                        size_hint:None,None
+                        width:'100sp'
+                        height:'40sp'
+                        pos_hint:{'center_x':.5,'center_y':.5}
+                        id:valor_conserto
+
+        MDLabel:
+            pos_hint:{'x':.05,'center_y':.3}
+            text:''
+            font_size:'20sp'
+            id:text_warning
+
+
+        MDFillRoundFlatIconButton:
+            icon:'clipboard-edit-outline'
+            text:'Save'
+            pos_hint:{'right':.98,'center_y':.1}
+            on_release:root.save_data()
+
+
+# class of amount of device
+# class de quantidade de aparelho
+<Box_View>:
+    orientation:'vertical'
+#    size_hint_y:.23
+    size_hint_y:None
+    height:'200dp'
+    text:''
+    sub_text:''
+    image:'image/Outros.png'
+#    image:''
+    ripple_behavior:True
+    adaptive_width:True
+    md_bg_color:69/255,55/255,86/255,.2
+    radius:12,12,12,12
+    on_release:root.text_of_button(self)
+    id:bt_content
+    MDBoxLayout:
+        orientation:'vertical'
+#        size_hint_y:None
+        Image:
+#            size_hint:.30,1
+            source:root.image
+        MDLabel:
+            halign:'center'
+            color:0,0,0,1
+            text:root.text
+        MDLabel:
+            halign:'center'
+            text: root.sub_text
+
+#        Button:
+#            size_hint_x:None
+#            width:'500dp'
+#            font_size:'25dp'
+#            color:app.theme_cls.primary_color
+#            id:bt_content
+#            on_release:root.text_of_button(self)
+#    Widget:
+
+
+
+
+
+<IconListItem>:
+    IconLeftWidget:
+        icon: root.icons
+
+<Aparelho>:
+    FloatLayout:
+        MDCard:
+            size_hint:None,None
+            size:300,300
+            pos_hint:{'x':.01,'top':.99}
+            md_bg_color:app.theme_cls.primary_color
+            radius:7,7,7,7
+
+        # panel of display of client
+        # Painel de mostragem do cliente
+            MDLabel:
+                bold:True
+#                color:1,1,1,1
+                halign:'center'
+                id:see_user_device
+        # /Painel
+
+        MDTextField:
+            hint_text:'Modelo aparelho'
+            size_hint_x: None
+            width:'300dp'
+            pos_hint:{'x':.3, 'center_y':.9}
+            id:modelo
+
+        MDTextField:
+            hint_text:'Marca'
+            size_hint_x: None
+            width:'300dp'
+            pos_hint:{'x':.3, 'center_y':.8}
+            on_focus: if self.focus:root.menu_widget.open()
+            id:id_marca
+
+        MDTextField:
+            size_hint_x:None
+            width:'300dp'
+            hint_text:'Serial'
+            pos_hint:{'x':.3,'center_y':.7}
+            id: serial
+
+        MDRoundFlatIconButton:
+            pos_hint:{'x':.35,'center_y':.6}
+            icon:'television-stop'
+            id:cituacao
+
+        BoxLayout:
+            size_hint:None,None
+            width:'300dp'
+            height:'30dp'
+            pos_hint:{'x':.3,'center_y':.5}
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Orçamento'
+                    color:25,21,0,1
+                    id:txt_orcamento
+                CheckBox:
+                    group:'grup'
+                    on_active:root.situacao(txt_orcamento.text)
+                    id:orcamento
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Arrumar'
+                    color:0,.5,0,1
+                    id:txt_arrumar
+                CheckBox:
+                    group:'grup'
+                    on_active:root.situacao(txt_arrumar.text)
+                    id:arrumar
+
+
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Devolver'
+                    color:.8,.3,0,1
+                    id:txt_devolver
+                CheckBox:
+                    group:'grup'
+                    on_active:root.situacao(txt_devolver.text)
+                    id:devolver
+        BoxLayout:
+            size_hint:None,None
+            width:'300dp'
+            height:'30dp'
+            pos_hint:{'x':.3,'center_y':.4}
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Arrumado'
+                    color:25,21,0,1
+                    id:txt_arrumado
+                CheckBox:
+                    group:'grup'
+                    on_active:root.situacao(txt_arrumado.text)
+                    id:arrumado
+            BoxLayout:
+                orientation:'vertical'
+                spacing:'14dp'
+                Label:
+                    text:'Entregue'
+                    color:25,21,0,1
+                    id:txt_entregue
+                CheckBox:
+                    group:'grup'
+                    on_active:root.situacao(txt_entregue.text)
+                    id:entregue
+
+        MDTextField:
+            size_hint:.3,.3
+            pos_hint:{'x':.65,'center_y':.75}
+            hint_text: "Defeitos!"
+            max_text_length:200
+            mode: "fill"
+            fill_color: 0, 0, 0, .4
+            multiline: True
+            id:defeito
+
+        MDCard:
+            orientation:'vertical'
+            size_hint:None,None
+            width:'340dp'
+            height:'200dp'
+            pos_hint:{'x':.65,'y':.25}
+            radius:11,11,11,11
+
+            MDLabel:
+                size_hint_y:None
+                height:'30sp'
+                font_size:'20sp'
+                bold:True
+                text:'Valor do conserto!'
+            BoxLayout:
+                orientation:'vertical'
+                FloatLayout:
+                    MDTextFieldRect:
+                        font_size:'20sp'
+                        hint_text:'$'
+                        size_hint:None,None
+                        width:'100sp'
+                        height:'40sp'
+                        pos_hint:{'center_x':.5,'center_y':.5}
+                        id:valor_conserto
+
+        MDFillRoundFlatIconButton:
+            icon:'plus'
+            text:'ADD'
+            pos_hint:{'right':.98,'center_y':.04}
+            on_release:root.save_produto()
+
+# Screen of stock =================
+
+<Text>:
+
+    size_hint:None,None
+    width:'250dp'
+    height:'20sp'
+    hint_tex:''
+    tipy_icon:''
+#    pos_hint:{'x':.05,'center_y':.9}
+    MDTextField:
+        size_hint_y:None
+        max_height:'43dp'
+        mode:'rectangle'
+        hint_text: root.hint_tex
+        color:1,0,0,1
+        line_color_normal:0,0,0,1
+        hint_text_color_normal:0,0,0,.3
+        icon_right:root.tipy_icon
+        icon_right_color_normal:0,0,1,1
+        text_color_normal: 0,0,0, 1
+
+<Check>:
+    orientation:'vertical'
+    size_hint_x:None
+    width:'20dp'
+    text_top:''
+    main_group:''
+    Label:
+        text:root.text_top
+        halign:'center'
+        color:0,0,0,1
+    CheckBox:
+        size_hint_x:None
+        width:'20dp'
+        color:1,0,0,1
+        group:root.main_group
+
+<ScreenEstoque>:
+    FloatLayout:
+
+        MDBoxLayout:
+#            canvas:
+#                Color:
+#                    rgba:.2,.6,.3,.4
+#                Rectangle:
+#                    size:self.size
+#                    pos:self.x,self.y
+
+            size_hint_y:None
+            height:'40dp'
+            pos_hint:{'top':.99}
+            Widget:
+                size_hint_x:None
+                width:'400dp'
+            Check:
+                text_top:'Novo'
+                main_group:'tipy'
+            Widget:
+                size_hint_x:None
+                width:'55dp'
+            Check:
+                text_top:'Usado'
+                main_group:'tipy'
+            Widget:
+                size_hint_x:None
+                width:'55dp'
+            Check:
+                text_top:'Sucata'
+                main_group:'tipy'
+
+        MDBoxLayout:
+            orientation:'vertical'
+            size_hint:None,None
+            width:'250dp'
+            height:'150dp'
+            pos_hint:{'x':.03,'center_y':.8}
+            spacing:'30dp'
+            Text:
+                hint_tex:'Tipo/Aparelho'
+                tipy_icon:'arrow-down-drop-circle'
+                pos_hint:{'center_x':.5}
+            Text:
+                hint_tex:'Marca'
+                tipy_icon:'arrow-down-drop-circle'
+                pos_hint:{'center_x':.5}
+            Text:
+                hint_tex:'Modelo'
+                pos_hint:{'center_x':.5}
+
+
+#        MDBoxLayout:
+#            orientation:'vertical'
+#            size_hint:None,None
+#            width:'250dp'
+#            height:'50dp'
+#            pos_hint:{'x':.05,'center_y':.60}
+#            MDLabel:
+#                text:'Informação de peças para retirada!'
+#                color:0,0,0,1
+#            MDIcon:
+#                icon:'arrow-down-bold-outline'
+#                badge_icon: "numeric-10"
+#                badge_icon_color:1,0,0,1
+#
+#                halign:'center'
+
+#    # Text to remove parts =====================
+#        TextInput:
+#            hint_text:'Conteudo'
+#            size_hint:None,None
+#            width:'270dp'
+#            height:'270dp'
+#            pos_hint:{'x':.8,'top':.52}
+##            multiline:True
+##            mode:'fill'
+##            max_height:'150dp'
+#            fill_color: 0, 0, 0, .4
+
+
+
+
+<InsertDeviced>:
+
+    orientation:'vertical'
+    size_hint:.3,.6
+    pos_hint:{'x':.02, 'y':.03}
+    MDLabel:
+        size_hint_y:.1
+        text:'Inserir Peças!'
+        halign:'center'
+        font_size:'25dp'
+        color:0,0,0,1
+    MDCard:
+        orientation:'vertical'
+        md_bg_color:1,1,1,1
+#            radius:11,11,11,11
+        MDBoxLayout:
+            orientation:'vertical'
+            pos_hint:{'center_x':.5}
+            size_hint_x:None
+            width:'300dp'
+#                    height:'20dp'
+            spacing:'13dp'
+            MDTextFieldRect:
+                hint_text:'Peças'
+                size_hint:1,None
+                height:'30sp'
+            MDTextFieldRect:
+                hint_text:'Modelo'
+                size_hint:1,None
+                height:'30sp'
+            MDTextFieldRect:
+                hint_text:'Serial'
+                size_hint:1,None
+                height:'30sp'
+            MDBoxLayout:
+                size_hint:None,None
+                width:'300dp'
+                height:'30dp'
+                spacing:'13dp'
+                MDLabel:
+                    text:'Valor/unit'
+                    color:0,0,0,1
+                MDTextFieldRect:
+                    hint_text:'0.0 R$'
+                MDLabel:
+                    size_hint_x:.3
+                    color:0,0,0,1
+                    text:'R$'
+            MDBoxLayout:
+                size_hint:None,None
+                width:'300dp'
+                height:'30dp'
+                spacing:'13dp'
+                MDLabel:
+                    text:'Valor/soma'
+                    color:0,0,0,1
+                MDTextFieldRect:
+                    hint_text:'0.0 R$'
+                MDLabel:
+                    size_hint_x:.3
+                    color:0,0,0,1
+                    text:'R$'
+            MDLabel:
+                size_hint_y:None
+                height:'20dp'
+                halign:'center'
+                color:0,0,0,1
+                bold:True
+                text:'Quatidade/Peça!'
+            MDBoxLayout:
+                size_hint:None,None
+                width:'300dp'
+                height:'50dp'
+                spacing:'13dp'
+                Button:
+                    size_hint:None,None
+                    width:'80dp'
+                    height:'50dp'
+                    text:'+'
+                    font_size:'30dp'
+                MDTextFieldRect:
+                    size_hint:1,None
+                    height:'50sp'
+                    font_size:'30sp'
+                    halign:'center'
+                    hint_text:'0'
+                Button:
+                    size_hint:None,None
+                    width:'80dp'
+                    height:'50dp'
+                    text:'-'
+                    font_size:'30dp'
+            Widget:
+                size_hint_y:None
+                height:'3dp'
+
+
+
+
+

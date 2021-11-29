@@ -1,0 +1,30 @@
+begininig : 12/04/2021
+
+Eletronica:
+
+cliente:
+    Codigo:
+    Nome:
+    Cpf:
+    Endereço:
+    Telefone:
+    Celular:
+    Email:
+    Aparelho: e Adicionar mais aparelho
+
+
+Eletronica:
+    Cadastrar cliente:
+    inserir aparelho:
+    Arrumar ou não aparelho:
+    defeito aparelho:
+    situação arrumar ou não arrumar:
+    Dar garantia:
+    fim garantia:
+    Visualizar cadastro:
+    Alterar cadastro :
+
+Estoque:
+    Incerir:
+    visualizar:
+    excluir:
