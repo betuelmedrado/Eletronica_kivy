@@ -672,9 +672,16 @@ class Check(MDBoxLayout):
     pass
 
 class ScreenEstoque(Screen):
-    pass
 
-class InsertDeviced(MDBoxLayout):
+    def add_parts(self, *args):
+        self.add_widget(InsertDeviceParts())
+
+
+class InsertDeviceParts(MDBoxLayout):
+
+    def fechar(self, *args):
+        self.clear_widgets()
+
 
 class EletronicaApp(MDApp):
     def build(self):

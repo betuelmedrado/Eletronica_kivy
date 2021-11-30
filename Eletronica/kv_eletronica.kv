@@ -82,12 +82,9 @@
 #            name:'screenlogin'
 #        ScreenView:
 #            name:'screenview'
-#        ScreenEstoque
-#            name:'screenestoque'
-#        EditDevice:
-#            name:'editdevice'
+        ScreenEstoque
+            name:'screenestoque'
 
-        ScreenEstoque:
 
 
 <ScreenImage>:
@@ -872,7 +869,7 @@
             size_hint:None,None
             width:'250dp'
             height:'150dp'
-            pos_hint:{'x':.03,'center_y':.8}
+            pos_hint:{'x':.03,'top':.75}
             spacing:'30dp'
             Text:
                 hint_tex:'Tipo/Aparelho'
@@ -885,6 +882,28 @@
             Text:
                 hint_tex:'Modelo'
                 pos_hint:{'center_x':.5}
+            MDLabel:
+                text:'Salve o aparelho ou adicione Mais peças do aparelho!'
+                color:0,0,0,1
+            Widget:
+
+            MDBoxLayout:
+                size_hint_y:None
+                height:'30dp'
+                spacing:'30dp'
+                MDLabel:
+
+                MDFillRoundFlatIconButton:
+                    icon:'content-save'
+                    pos_hint:{'center_y':.9}
+                    text:'Save'
+                MDFloatingActionButton:
+                    icon:'plus-circle'
+                    on_release:root.add_parts()
+
+
+
+
 
 
 #        MDBoxLayout:
@@ -918,21 +937,20 @@
 
 
 
-<InsertDeviced>:
-
+<InsertDeviceParts>:
     orientation:'vertical'
-    size_hint:.3,.6
-    pos_hint:{'x':.02, 'y':.03}
-    MDLabel:
-        size_hint_y:.1
-        text:'Inserir Peças!'
-        halign:'center'
-        font_size:'25dp'
-        color:0,0,0,1
+    size_hint:.3,.65
+    pos_hint:{'x':.01, 'y':.03}
     MDCard:
         orientation:'vertical'
         md_bg_color:1,1,1,1
 #            radius:11,11,11,11
+        MDLabel:
+            size_hint_y:.1
+            text:'Inserir Peças!'
+            halign:'center'
+            font_size:'25dp'
+            color:0,0,0,1
         MDBoxLayout:
             orientation:'vertical'
             pos_hint:{'center_x':.5}
@@ -995,24 +1013,38 @@
                 Button:
                     size_hint:None,None
                     width:'80dp'
-                    height:'50dp'
+                    height:'40dp'
                     text:'+'
                     font_size:'30dp'
                 MDTextFieldRect:
                     size_hint:1,None
-                    height:'50sp'
-                    font_size:'30sp'
+                    height:'40sp'
+                    font_size:'25sp'
                     halign:'center'
                     hint_text:'0'
                 Button:
                     size_hint:None,None
                     width:'80dp'
-                    height:'50dp'
+                    height:'40dp'
                     text:'-'
                     font_size:'30dp'
-            Widget:
+            MDBoxLayout:
                 size_hint_y:None
-                height:'3dp'
+                height:'35dp'
+                spacing:'30dp'
+                padding:'10dp'
+                MDFlatButton:
+                    theme_text_color:'Custom'
+                    text_color:0,0,1,1
+                    font_size:'20sp'
+                    text:'save'
+                Widget:
+
+                MDFlatButton:
+                    theme_text_color:'Custom'
+                    text_color:1,0,0,1
+                    text:'sair'
+                    on_release:root.fechar()
 
 
 
