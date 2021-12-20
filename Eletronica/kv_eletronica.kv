@@ -57,7 +57,7 @@
             bold:True
             text:'Estoque'
             on_press:manager.transition = Factory.get('FadeTransition')()
-            on_release:manager.current = 'screenestoque'
+            on_release:manager.current = 'newusedparts'
 
     ScreenManager:
         id:manager
@@ -74,17 +74,20 @@
                 size:self.width, 3
                 pos:self.pos
 
-#        ScreenImage:
-#            name:'screenimage'
-#        ScreenRegister:
-#            name:'screenregister'
-#        ScreenLogin:
-#            name:'screenlogin'
-#        ScreenView:
-#            name:'screenview'
+        ScreenImage:
+            name:'screenimage'
+        ScreenRegister:
+            name:'screenregister'
+        ScreenLogin:
+            name:'screenlogin'
+        ScreenView:
+            name:'screenview'
+        NewUsedParts:
+            name:'newusedparts'
         ScreenEstoque
             name:'screenestoque'
-
+        EditDevice:
+            name:'editdevice'
 
 
 <ScreenImage>:
@@ -371,7 +374,7 @@
             elevaton:'7dp'
             md_bg_color:1,1,1,.5
 
-# === Aparelho
+    # === Aparelho
             MDLabel:
                 size_hint_y:None
                 height:'30dp'
@@ -381,7 +384,6 @@
                 font_size:'30sp'
                 bold:True
 
-#            Widget:
        # here receive the class "Box_View" and the buttons
             ScrollView:
                 orientation:'vertical'
@@ -594,13 +596,12 @@
 # class de quantidade de aparelho
 <Box_View>:
     orientation:'vertical'
-#    size_hint_y:.23
     size_hint_y:None
     height:'200dp'
     text:''
     sub_text:''
-    image:'image/Outros.png'
-#    image:''
+#    image:'image/Outros.png'
+    image:''
     ripple_behavior:True
     adaptive_width:True
     md_bg_color:69/255,55/255,86/255,.2
@@ -802,20 +803,28 @@
     height:'20sp'
     hint_tex:''
     tipy_icon:''
-#    pos_hint:{'x':.05,'center_y':.9}
+    text:text_field.text
     MDTextField:
         size_hint_y:None
         max_height:'43dp'
         mode:'rectangle'
         hint_text: root.hint_tex
+        text:root.text
         color:1,0,0,1
         line_color_normal:0,0,0,1
         hint_text_color_normal:0,0,0,.3
         icon_right:root.tipy_icon
         icon_right_color_normal:0,0,1,1
         text_color_normal: 0,0,0, 1
+        id:text_field
 
 <Check>:
+#    canvas:
+#        Color:
+#            rgba:.2,.6,.3,.4
+#        Rectangle:
+#            size:self.size
+#            pos:self.x,self.y
     orientation:'vertical'
     size_hint_x:None
     width:'20dp'
@@ -831,120 +840,236 @@
         color:1,0,0,1
         group:root.main_group
 
+# class to celecting screen NEW USED PARTS =====<
+<NewUsedParts>:
+    FloatLayout:
+        MDBoxLayout:
+            size_hint:None,None
+            width:'500dp'
+            height:'400dp'
+            padding:'20dp'
+            spacing:'30dp'
+            pos_hint:{'center_x':.5, 'center_y':.8}
+            MDCard:
+                size_hint:.05,.2
+                md_bg_color:.2,.3,.4,.5
+                radius:11,11,11,11
+                ripple_behavior:True
+                Image:
+                    source:'image/Outros.png'
+                MDLabel:
+                    text:'Novos'
+            MDCard:
+                size_hint:.05,.2
+                md_bg_color:.2,.3,.4,.5
+                radius:11,11,11,11
+                ripple_behavior:True
+                ripple_behavior:True
+                Image:
+                    source:'image/Outros.png'
+                MDLabel:
+                    text:'Usados'
+            MDCard:
+                size_hint:.05,.2
+                md_bg_color:.2,.3,.4,.5
+                radius:11,11,11,11
+                ripple_behavior:True
+                on_release:app.root.ids.manager.current = 'screenestoque'
+                Image:
+                    source:'image/Outros.png'
+                MDLabel:
+                    text:'Sucata'
+
+# Button of device To insert in stock screen
+<ButtonStock>:
+    size_hint_y:None
+    height:'60dp'
+    text_id:''
+    rotulo:''
+    sub_text:''
+    prateleira:''
+    MDCard:
+        orientation:'vertical'
+        ripple_behavior:True
+        md_bg_color:0.2,0.3,0.5,0.2
+        radius:5,5,5,5
+        on_release:root.open_devices(root.text_id)
+        MDLabel:
+            bold:True
+            font_style:'H6'
+            text:root.rotulo
+            color:0,0,0,1
+        BoxLayout:
+            MDLabel:
+                halign:'center'
+                font_style:'Caption'
+                color:0,0,0,1
+                text:root.sub_text
+            MDLabel:
+                size_hint_x:None
+                width:'50dp'
+                halign:'right'
+                color:1,0,0,1
+                text:root.prateleira
+
+
 <ScreenEstoque>:
     FloatLayout:
-
-        MDBoxLayout:
-#            canvas:
-#                Color:
-#                    rgba:.2,.6,.3,.4
-#                Rectangle:
-#                    size:self.size
-#                    pos:self.x,self.y
-
-            size_hint_y:None
-            height:'40dp'
-            pos_hint:{'top':.99}
-            Widget:
-                size_hint_x:None
-                width:'400dp'
-            Check:
-                text_top:'Novo'
-                main_group:'tipy'
-            Widget:
-                size_hint_x:None
-                width:'55dp'
-            Check:
-                text_top:'Usado'
-                main_group:'tipy'
-            Widget:
-                size_hint_x:None
-                width:'55dp'
-            Check:
-                text_top:'Sucata'
-                main_group:'tipy'
-
+        # Area for searching device stocke
+        # Area para pesquisa de aparelho no estoque
         MDBoxLayout:
             orientation:'vertical'
             size_hint:None,None
-            width:'250dp'
-            height:'150dp'
-            pos_hint:{'x':.03,'top':.75}
+            width:'280dp'
+            height:'100dp'
+            pos_hint:{'x':.03,'top':.65}
             spacing:'30dp'
+            MDLabel:
+                font_size:'20sp'
+                text:'Pesquisa de aparelho'
+                halign:'center'
+                color:0,0,0,1
+
             Text:
                 hint_tex:'Tipo/Aparelho'
                 tipy_icon:'arrow-down-drop-circle'
                 pos_hint:{'center_x':.5}
+                id:pesq_aparelho
             Text:
                 hint_tex:'Marca'
                 tipy_icon:'arrow-down-drop-circle'
                 pos_hint:{'center_x':.5}
+                id:pesq_marca
             Text:
                 hint_tex:'Modelo'
                 pos_hint:{'center_x':.5}
+                id:pesq_modelo
+            MDBoxLayout:
+                orientation:'vertical'
+                size_hint_y:None
+                height:'60dp'
+                halign:'center'
+                MDFloatingActionButton:
+                    icon:'magnify'
+                    pos_hint:{'center_x':.5}
+                    on_release: root.search_device()
+    # Center card
+        MDBoxLayout:
+            size_hint:None,.92
+            width:'305dp'
+            pos_hint:{'center_x':.45,'center_y':.5}
+            radius:11,11,11,11
+            md_bg_color: 0,0,0,.5
+            Widget:
+            MDCard:
+                size_hint:None,.99
+                width:'300dp'
+                md_bg_color:1,1,1,1
+                radius:5,5,5,5
+                pos_hint:{'center_x':.5,'center_y':.5}
+                elevation:1
+                ScrollView:
+                    MDBoxLayout:
+                        orientation:'vertical'
+                        size_hint_y:None
+                        height: self.minimum_height
+                        id:show_parts
+            Widget:
+
+        # Area for insert device
+        MDBoxLayout:
+            orientation:'vertical'
+            size_hint:None,None
+            width:'280dp'
+            height:'270dp'
+            pos_hint:{'right':.95,'top':.60}
+            spacing:'30dp'
+            MDLabel:
+                font_size:'20sp'
+                text:'Inserir aparelho'
+                halign:'center'
+                color:0,0,0,1
+            Text:
+                hint_tex:'Tipo/Aparelhos'
+                tipy_icon:'arrow-down-drop-circle'
+                pos_hint:{'center_x':.5}
+                id:aparelho
+            Text:
+                hint_tex:'Marca'
+                tipy_icon:'arrow-down-drop-circle'
+                pos_hint:{'center_x':.5}
+                id:marca
+            Text:
+                hint_tex:'Modelo'
+                pos_hint:{'center_x':.5}
+                id:modelo
+            Text:
+                hint_tex:'Avarias'
+                pos_hint:{'center_x':.5}
+                id:avarias
+            MDBoxLayout:
+                size_hint:None,None
+                width:'280dp'
+                height:'25dp'
+                spacing:'60dp'
+                pos_hint:{'center_x':.55,'center_y':.5}
+                Text:
+                    pos_hint:{'center_x':.5,'center_y':.5}
+                    size_hint_x:None
+                    width:'80dp'
+                    hint_tex:'Prateleira'
+                    id:prateleira
+                Text:
+                    pos_hint:{'center_x':.5,'center_y':.5}
+                    size_hint_x:None
+                    width:'110dp'
+                    hint_tex:'Espaço Prateleira'
+                    id:espaco
+            Widget:
+
             MDLabel:
                 text:'Salve o aparelho ou adicione Mais peças do aparelho!'
+                halign:'center'
                 color:0,0,0,1
             Widget:
 
             MDBoxLayout:
+                orientation:'vertical'
                 size_hint_y:None
-                height:'30dp'
-                spacing:'30dp'
-                MDLabel:
+                height:'110dp'
+                spacing:'6dp'
+                halign:'center'
+                MDFillRoundFlatIconButton:
+                    icon:'file-table-box'
+                    text:'Local/Prateleira'
+                    pos_hint:{'center_x':.5}
 
                 MDFillRoundFlatIconButton:
                     icon:'content-save'
                     pos_hint:{'center_y':.9}
                     text:'Save'
+                    pos_hint:{'center_x':.5}
+                    on_release:root.save_deviced()
                 MDFloatingActionButton:
                     icon:'plus-circle'
+                    pos_hint:{'center_x':.5}
                     on_release:root.add_parts()
 
-
-
-
-
-
-#        MDBoxLayout:
-#            orientation:'vertical'
-#            size_hint:None,None
-#            width:'250dp'
-#            height:'50dp'
-#            pos_hint:{'x':.05,'center_y':.60}
-#            MDLabel:
-#                text:'Informação de peças para retirada!'
-#                color:0,0,0,1
-#            MDIcon:
-#                icon:'arrow-down-bold-outline'
-#                badge_icon: "numeric-10"
-#                badge_icon_color:1,0,0,1
-#
-#                halign:'center'
-
-#    # Text to remove parts =====================
-#        TextInput:
-#            hint_text:'Conteudo'
-#            size_hint:None,None
-#            width:'270dp'
-#            height:'270dp'
-#            pos_hint:{'x':.8,'top':.52}
-##            multiline:True
-##            mode:'fill'
-##            max_height:'150dp'
-#            fill_color: 0, 0, 0, .4
-
-
-
-
 <InsertDeviceParts>:
+#    Scatter:
+#        canvas:
+#            Color:
+#                rgba:.3,.0,.3,.3
+#            Rectangle:
+#                pos:self.x,self.y
+#                size:self.size
     orientation:'vertical'
     size_hint:.3,.65
-    pos_hint:{'x':.01, 'y':.03}
+    pos_hint:{'x':.5, 'y':.03}
     MDCard:
         orientation:'vertical'
         md_bg_color:1,1,1,1
-#            radius:11,11,11,11
+        radius:2,2,2,2
         MDLabel:
             size_hint_y:.1
             text:'Inserir Peças!'
@@ -956,7 +1081,7 @@
             pos_hint:{'center_x':.5}
             size_hint_x:None
             width:'300dp'
-#                    height:'20dp'
+#                    height:'900dp'
             spacing:'13dp'
             MDTextFieldRect:
                 hint_text:'Peças'
@@ -1037,13 +1162,13 @@
                     theme_text_color:'Custom'
                     text_color:0,0,1,1
                     font_size:'20sp'
-                    text:'save'
+                    text:'Salvar'
                 Widget:
 
                 MDFlatButton:
                     theme_text_color:'Custom'
                     text_color:1,0,0,1
-                    text:'sair'
+                    text:'Sair'
                     on_release:root.fechar()
 
 

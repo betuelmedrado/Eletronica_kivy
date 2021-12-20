@@ -214,15 +214,30 @@ class ScreenRegister(Screen,Date):
                      ' );')
 
         conn.execute('CREATE TABLE IF NOT EXISTS estoque(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
-                     'Pessa TEXT NOT NULL, '
-                     'Quantidade INTEGER,'
+                     'Aparelho TEXT, '                     
                      'Modelo Text,'
                      'Marca Text,'
-                     'Outros Text);')
+                     'Avarias TEXT,'
+                     'Prateleira INTEGER,'
+                     'EspacoPrateleira TEXT,'
+                     'Valor TEXT);')
 
-        # conn.execute('CREATE TABLE IF NOT EXISTS prateleira(ID INTEGER PRIMARY KEY NOT NULL AUTOINCREMENT,'
-        #              'Numero ITEGER ,'
-        #              ')')
+        conn.execute('CREATE TABLE IF NOT EXISTS StockPartsDevices(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,'
+                    'ID_Device INTEGER NOT NULL,'
+                    'Peca TEXT NOT NULL,'
+                    'Modelo TEXT,'
+                    'Serial TEXT,'
+                    'ValorUnit REAL,'
+                    'ValorSoma REAL,'
+                    'Quantidade INTEGER);')
+
+
+        conn.execute('CREATE TABLE IF NOT EXISTS prateleira(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+                     'PrateleirNum TEXT);')
+
+        conn.execute('CREATE TABLE IF NOT EXISTS EspacoPrateleira (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+                     'IDPrateleira INTEGER NOT NULL,'
+                     'Espaco TEXT)')
 
         conn.commit()
 
@@ -423,7 +438,10 @@ class ScreenView(Screen):
         try:
             # Here return the button with device
             for item in self.get:
-                self.ids.scroll.add_widget(Box_View(content=str(item['Modelo']),sub=str(item['Marca']),imag=str(item['Modelo']).title()))
+                self.ids.scroll.add_widget(Box_View(content=str(item['Modelo']),
+                                                    sub=str(item['Marca']),
+                                                    imag=str(item['Modelo']).title()))
+
         except AttributeError:
             print('ERROR: linha 324 na class ScreenView a variavel get não recebel um data base!')
 
@@ -583,7 +601,6 @@ class EditDevice(Screen):
         self.data_base()
 
 
-
 class Box_View(MDCard):
 
     map = {}
@@ -604,7 +621,6 @@ class Box_View(MDCard):
 
     def see_content_deviced(self,txt):
 
-        print(txt)
         # geting id of client
         id_client = self.get_id_client()
 
@@ -619,6 +635,8 @@ class Box_View(MDCard):
 
     # Here is to open the content of popup
     def text_of_button(self,txt):
+
+        # print(self.image)
         obg_device = self.see_content_deviced(txt)
 
         screen_view = MDApp.get_running_app().root.ids.manager.get_screen('screenview')
@@ -671,11 +689,89 @@ class Text(MDBoxLayout):
 class Check(MDBoxLayout):
     pass
 
+class NewUsedParts(Screen):
+    pass
+
+class OpenPartsDevices(BoxLayout):
+    pass
+
+class ButtonStock(BoxLayout):
+    def __init__(self, text_id='',texto='',sub='',prateleira='', **kwargs):
+        super().__init__(**kwargs)
+
+        self.text_id = str(text_id)
+        self.rotulo = str(texto)
+        self.sub_text = str(sub)
+        self.prateleira = str(prateleira)
+
+    def open_devices(self, id):
+        print(id)
+        ScreenEstoque().add_widget(Button())
+
+
 class ScreenEstoque(Screen):
+
+    def on_pre_enter(self,*args):
+        self.show_device()
+
+    def show_device(self, *args):
+        conn = sqlite3.connect('Eletronica.db')
+        cursor = conn.cursor()
+        data = cursor.execute('SELECT * FROM estoque')
+
+        self.ids.show_parts.clear_widgets()
+        for iten in data.fetchall():
+
+            self.ids.show_parts.add_widget(BoxLayout(size_hint_y=None,height=('11dp')))
+            self.ids.show_parts.add_widget(ButtonStock(text_id=iten[0], texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
+
+    def search_device(self,*args):
+        aparelho = str(self.ids.pesq_aparelho.text)
+        marca = str(self.ids.pesq_marca.text)
+        modelo = str(self.ids.pesq_modelo.text)
+
+        conn = sqlite3.connect('Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM estoque '
+                       'WHERE Aparelho == "'+aparelho+'" OR Marca == "'+marca+'" OR Modelo == "'+modelo+'" ')
+        self.ids.show_parts.clear_widgets()
+
+        for iten in cursor.fetchall():
+            self.ids.show_parts.add_widget(BoxLayout(size_hint_y=None, height=('11dp')))
+            self.ids.show_parts.add_widget(ButtonStock(texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
+
+        if aparelho == '' and marca == '' and modelo == '':
+            self.show_device()
+
+    def save_deviced(self,*args):
+
+        aparelho = str(self.ids.aparelho.text)
+        marca = str(self.ids.marca.text)
+        modelo = str(self.ids.modelo.text)
+        avarias = str(self.ids.avarias.text)
+        prateleira = str(self.ids.prateleira.text)
+        espaco = str(self.ids.espaco.text)
+
+        # situacao = 'Usado'
+        # valor = '50.0'
+
+        conn = sqlite3.connect('Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO estoque(Aparelho, Modelo, Marca, Avarias, Prateleira, EspacoPrateleira)'
+                       'VALUES("'+ aparelho +'","'+ modelo +'","'+ marca +'","'+ avarias +'","'+ prateleira +'","'+ espaco +'")')
+        conn.commit()
+
+        self.ids.aparelho.text = ''
+        self.ids.marca.text = ''
+        self.ids.modelo.text = ''
+        self.ids.avarias.text = ''
+        self.ids.prateleira.text = ''
+        self.ids.espaco.text = ''
+
+        self.show_device()
 
     def add_parts(self, *args):
         self.add_widget(InsertDeviceParts())
-
 
 class InsertDeviceParts(MDBoxLayout):
 
@@ -686,6 +782,7 @@ class InsertDeviceParts(MDBoxLayout):
 class EletronicaApp(MDApp):
     def build(self):
         Builder.load_string(open('kv_eletronica.kv', encoding='utf-8').read())
+        # Builder.load_string(open('screens.kv', encoding='utf-8').read())
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.primary_palette = 'Blue'
         self.theme_cls.accent_palette = 'Green'
