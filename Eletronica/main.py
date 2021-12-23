@@ -10,6 +10,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.list import OneLineIconListItem
 from kivymd.uix.card import MDCard
 from kivymd.uix.snackbar import Snackbar
+# from kivymd.toast import toast  ===============toast<
 
 #Kivy
 from kivy.lang import Builder
@@ -25,7 +26,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.button import Button
 from kivy.properties import StringProperty
 from kivy.metrics import dp
-from kivy.clock import Clock
+from kivy.uix.scatter import ScatterPlane, Scatter
 
 import sqlite3
 import json
@@ -692,8 +693,22 @@ class Check(MDBoxLayout):
 class NewUsedParts(Screen):
     pass
 
-class OpenPartsDevices(BoxLayout):
-    pass
+
+class OpenPartsDevices(MDBoxLayout):
+
+    def __init__(self,text_id='',texto='',sub='',prateleira='',**kwargs):
+        super().__init__(**kwargs)
+        # self.ids.text_data.text = str(text_data)
+
+        self.text_id = str(text_id)
+        self.texto = str(texto)
+        self.sub_text = str(sub)
+        self.prateleira = str(prateleira)
+
+
+    def fechar(self,*args):
+        self.clear_widgets()
+
 
 class ButtonStock(BoxLayout):
     def __init__(self, text_id='',texto='',sub='',prateleira='', **kwargs):
@@ -704,9 +719,27 @@ class ButtonStock(BoxLayout):
         self.sub_text = str(sub)
         self.prateleira = str(prateleira)
 
+# Here open an box to show thes select devices
     def open_devices(self, id):
-        print(id)
-        ScreenEstoque().add_widget(Button())
+
+        conn = sqlite3.connect('Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM estoque '
+                       'WHERE ID = "'+id+'";')
+
+        content = cursor.fetchall()
+
+
+        self.parent.parent.parent.parent.parent.add_widget(OpenPartsDevices(
+            content[0][0], content[0][1]+' - '+content[0][3], content[0][4], str(content[0][5]) + '/' + str(content[0][6])))
+
+            # text_data=f'Aparelho: [b]{content[0][1]}[/b]\n'
+            #           f'{content[0][2]}\n'
+            #           f'{content[0][3]}\n'
+            #           f'{content[0][4]}\n'
+            #           f'{content[0][5]}\\'
+            #           f'{content[0][6]}\n'
+            #           f'{content[0][7]}'))
 
 
 class ScreenEstoque(Screen):
@@ -726,19 +759,19 @@ class ScreenEstoque(Screen):
             self.ids.show_parts.add_widget(ButtonStock(text_id=iten[0], texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
 
     def search_device(self,*args):
-        aparelho = str(self.ids.pesq_aparelho.text)
-        marca = str(self.ids.pesq_marca.text)
-        modelo = str(self.ids.pesq_modelo.text)
+        aparelho = str(self.ids.pesq_aparelho.text).title()
+        marca = str(self.ids.pesq_marca.text).title()
+        modelo = str(self.ids.pesq_modelo.text).title()
 
         conn = sqlite3.connect('Eletronica.db')
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM estoque '
-                       'WHERE Aparelho == "'+aparelho+'" OR Marca == "'+marca+'" OR Modelo == "'+modelo+'" ')
+                       'WHERE Aparelho LIKE "'+aparelho+'%" AND Marca LIKE "'+marca+'%" AND Modelo LIKE "'+modelo+'%" ')
         self.ids.show_parts.clear_widgets()
 
         for iten in cursor.fetchall():
             self.ids.show_parts.add_widget(BoxLayout(size_hint_y=None, height=('11dp')))
-            self.ids.show_parts.add_widget(ButtonStock(texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
+            self.ids.show_parts.add_widget(ButtonStock(text_id=iten[0],texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
 
         if aparelho == '' and marca == '' and modelo == '':
             self.show_device()

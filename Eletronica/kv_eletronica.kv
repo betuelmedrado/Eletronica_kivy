@@ -888,12 +888,15 @@
     rotulo:''
     sub_text:''
     prateleira:''
+    change_func:True
     MDCard:
         orientation:'vertical'
         ripple_behavior:True
         md_bg_color:0.2,0.3,0.5,0.2
         radius:5,5,5,5
-        on_release:root.open_devices(root.text_id)
+        on_release:
+            if root.change_func: root.open_devices(root.text_id)
+
         MDLabel:
             bold:True
             font_style:'H6'
@@ -912,17 +915,57 @@
                 color:1,0,0,1
                 text:root.prateleira
 
+<OpenPartsDevices>:
+    size_hint:None,None
+    size:'900dp','500dp'
+    pos_hint:{'center_x':.5,'center_y':.6}
+    text_id:''
+    texto:''
+    sub_text:''
+    prateleira:''
+    Scatter:
+        do_rotation:False
+        do_scale:False
+        MDCard:
+            orientation:'vertical'
+            id:mdcar
+            size_hint:None,None
+            size:'800dp','400dp'
+            pos_hint:{"center_x":.5,"center_y":.5}
+            md_bg_color:1,1,1,1
+            FloatLayout:
+                ButtonStock:
+                    size_hint:None,None
+                    size:'300dp','60dp'
+                    pos_hint:{'x':.01,'center_y':.9}
+                    text_id:root.text_id
+                    rotulo:root.texto
+                    sub_text:root.sub_text
+                    prateleira:root.prateleira
+                    change_func:False
+#                    disabled:True
+                MDCard:
+                    size_hint:None,None
+                    size:'300dp','370dp'
+                    pos_hint:{'right':.99,'center_y':.5}
+
+                MDRoundFlatIconButton:
+                    text:'fechar'
+                    on_release:root.fechar()
+
+
 
 <ScreenEstoque>:
     FloatLayout:
         # Area for searching device stocke
         # Area para pesquisa de aparelho no estoque
+        id:float
         MDBoxLayout:
             orientation:'vertical'
             size_hint:None,None
             width:'280dp'
             height:'100dp'
-            pos_hint:{'x':.03,'top':.65}
+            pos_hint:{'x':.03,'top':.86}
             spacing:'30dp'
             MDLabel:
                 font_size:'20sp'
@@ -934,25 +977,20 @@
                 hint_tex:'Tipo/Aparelho'
                 tipy_icon:'arrow-down-drop-circle'
                 pos_hint:{'center_x':.5}
+                on_text: root.search_device()
                 id:pesq_aparelho
             Text:
                 hint_tex:'Marca'
                 tipy_icon:'arrow-down-drop-circle'
                 pos_hint:{'center_x':.5}
+                on_text:root.search_device()
                 id:pesq_marca
             Text:
                 hint_tex:'Modelo'
                 pos_hint:{'center_x':.5}
+                on_text:root.search_device()
                 id:pesq_modelo
-            MDBoxLayout:
-                orientation:'vertical'
-                size_hint_y:None
-                height:'60dp'
-                halign:'center'
-                MDFloatingActionButton:
-                    icon:'magnify'
-                    pos_hint:{'center_x':.5}
-                    on_release: root.search_device()
+
     # Center card
         MDBoxLayout:
             size_hint:None,.92
