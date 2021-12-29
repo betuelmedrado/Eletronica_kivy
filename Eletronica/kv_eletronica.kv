@@ -802,7 +802,7 @@
     width:'250dp'
     height:'20sp'
     hint_tex:''
-    tipy_icon:''
+    icon_type:''
     text:text_field.text
     MDTextField:
         size_hint_y:None
@@ -813,7 +813,7 @@
         color:1,0,0,1
         line_color_normal:0,0,0,1
         hint_text_color_normal:0,0,0,.3
-        icon_right:root.tipy_icon
+        icon_right:root.icon_type
         icon_right_color_normal:0,0,1,1
         text_color_normal: 0,0,0, 1
         id:text_field
@@ -943,15 +943,38 @@
                     sub_text:root.sub_text
                     prateleira:root.prateleira
                     change_func:False
-#                    disabled:True
+                MDLabel:
+                    text:''
+                    color:0,0,0,1
+                    halign:'center'
+                    markup:True
+                    pos_hint:{'center_x':.2,'center_y':.7}
+                    id:info
+                MDRaisedButton:
+                    text:'Inserir'
+#                    theme_text_color:'Custom'
+#                    text_color:0,0,0,1
+                    md_bg_color:0.2,0.3,0.5,.7
+                    pos_hint:{'center_x':.5,'center_y':.9}
+                    on_release:root.insert_parts()
+
+
                 MDCard:
                     size_hint:None,None
                     size:'300dp','370dp'
+                    md_bg_color:0.2,0.3,0.5,.4
                     pos_hint:{'right':.99,'center_y':.5}
+                    ScrollView:
+                        BoxLayout:
+                            orientation:'vertical'
+                            size_hint_y:None
+                            height:self.minimum_height
+                            id:scroll_parts
+
 
                 MDRoundFlatIconButton:
                     text:'fechar'
-                    on_release:root.fechar()
+                    on_release:app.root.ids.manager.get_screen('screenestoque').closed(root)
 
 
 
@@ -975,19 +998,22 @@
 
             Text:
                 hint_tex:'Tipo/Aparelho'
-                tipy_icon:'arrow-down-drop-circle'
+                icon_type:'magnify'
                 pos_hint:{'center_x':.5}
+                type_icon:
                 on_text: root.search_device()
+
                 id:pesq_aparelho
             Text:
                 hint_tex:'Marca'
-                tipy_icon:'arrow-down-drop-circle'
+                icon_type:'magnify'
                 pos_hint:{'center_x':.5}
                 on_text:root.search_device()
                 id:pesq_marca
             Text:
                 hint_tex:'Modelo'
                 pos_hint:{'center_x':.5}
+                icon_type:'magnify'
                 on_text:root.search_device()
                 id:pesq_modelo
 
@@ -1029,12 +1055,12 @@
                 color:0,0,0,1
             Text:
                 hint_tex:'Tipo/Aparelhos'
-                tipy_icon:'arrow-down-drop-circle'
+                icon_type:'arrow-down-drop-circle'
                 pos_hint:{'center_x':.5}
                 id:aparelho
             Text:
                 hint_tex:'Marca'
-                tipy_icon:'arrow-down-drop-circle'
+                icon_type:'arrow-down-drop-circle'
                 pos_hint:{'center_x':.5}
                 id:marca
             Text:
@@ -1088,25 +1114,22 @@
                     text:'Save'
                     pos_hint:{'center_x':.5}
                     on_release:root.save_deviced()
-                MDFloatingActionButton:
-                    icon:'plus-circle'
-                    pos_hint:{'center_x':.5}
-                    on_release:root.add_parts()
+#                MDFloatingActionButton:
+#                    icon:'plus-circle'
+#                    pos_hint:{'center_x':.5}
+#                    on_release:root.add_parts()
 
 <InsertDeviceParts>:
-#    Scatter:
-#        canvas:
-#            Color:
-#                rgba:.3,.0,.3,.3
-#            Rectangle:
-#                pos:self.x,self.y
-#                size:self.size
-    orientation:'vertical'
-    size_hint:.3,.65
-    pos_hint:{'x':.5, 'y':.03}
-    MDCard:
+    size_hint:None,None
+    width:300
+    height:400
+
+    MDBoxLayout:
+        size_hint:None,None
+        width:350
+        height:400
         orientation:'vertical'
-        md_bg_color:1,1,1,1
+        md_bg_color:0.2,0.3,0.5,.9
         radius:2,2,2,2
         MDLabel:
             size_hint_y:.1
@@ -1125,14 +1148,20 @@
                 hint_text:'Peças'
                 size_hint:1,None
                 height:'30sp'
+                multiline:False
+                id:controller_pecas
             MDTextFieldRect:
                 hint_text:'Modelo'
                 size_hint:1,None
                 height:'30sp'
+                multiline:False
+                id:controller_modelo
             MDTextFieldRect:
                 hint_text:'Serial'
                 size_hint:1,None
                 height:'30sp'
+                multiline:False
+                id:controller_serial
             MDBoxLayout:
                 size_hint:None,None
                 width:'300dp'
@@ -1143,6 +1172,9 @@
                     color:0,0,0,1
                 MDTextFieldRect:
                     hint_text:'0.0 R$'
+                    multiline:False
+                    on_text:root.on_texto()
+                    id:controller_valor
                 MDLabel:
                     size_hint_x:.3
                     color:0,0,0,1
@@ -1157,6 +1189,8 @@
                     color:0,0,0,1
                 MDTextFieldRect:
                     hint_text:'0.0 R$'
+                    readonly:True
+                    id:controller_soma
                 MDLabel:
                     size_hint_x:.3
                     color:0,0,0,1
@@ -1179,18 +1213,25 @@
                     height:'40dp'
                     text:'+'
                     font_size:'30dp'
+                    on_release:root.cont(True)
+
                 MDTextFieldRect:
                     size_hint:1,None
                     height:'40sp'
                     font_size:'25sp'
                     halign:'center'
+                    multiline:False
                     hint_text:'0'
+                    text:'0'
+#                    on_text:root.on_texto()
+                    id:controller_cont
                 Button:
                     size_hint:None,None
                     width:'80dp'
                     height:'40dp'
                     text:'-'
                     font_size:'30dp'
+                    on_release:root.cont(False)
             MDBoxLayout:
                 size_hint_y:None
                 height:'35dp'
@@ -1201,14 +1242,14 @@
                     text_color:0,0,1,1
                     font_size:'20sp'
                     text:'Salvar'
+                    on_release: root.save_data_deviced()
                 Widget:
 
                 MDFlatButton:
                     theme_text_color:'Custom'
                     text_color:1,0,0,1
                     text:'Sair'
-                    on_release:root.fechar()
-
+                    on_release:root.fechar(self)
 
 
 

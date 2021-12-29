@@ -183,7 +183,6 @@ class ScreenRegister(Screen,Date):
             self.ids.cadastro_cpf.color_mode = 'custom'
             self.ids.cadastro_cpf.line_color_focus = 1,0,0,1
 
-
     def criaBd(self):
         conn = sqlite3.connect('Eletronica.db')
         conn.cursor()
@@ -696,18 +695,53 @@ class NewUsedParts(Screen):
 
 class OpenPartsDevices(MDBoxLayout):
 
-    def __init__(self,text_id='',texto='',sub='',prateleira='',**kwargs):
+    def __init__(self,text_id='',texto='',sub='',prateleira='',info='', **kwargs):
+        """
+
+        :param text_id: this is an id to the content
+        :param texto: An text to be isert on class ButtonStock
+        :param sub: An text to be isert on class ButtonStock
+        :param prateleira: An text to be isert on class ButtonStock
+        :param kwargs: An text to be isert on class ButtonStock
+        """
         super().__init__(**kwargs)
-        # self.ids.text_data.text = str(text_data)
+        self.ids.info.text = str(info) + '\n\nPrateleira\n' + f'[color=#eb3434]{str(prateleira)}[/color]'
 
         self.text_id = str(text_id)
         self.texto = str(texto)
         self.sub_text = str(sub)
         self.prateleira = str(prateleira)
 
+        self.creat_txt()
+        self.insert_button()
 
-    def fechar(self,*args):
+    def insert_button(self,*args,):
+        file_id = open('get_id.txt', 'r')
+        id = file_id.read()
+        file_id.close()
+
+        conn = sqlite3.connect('Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM StockPartsDevices '
+                       'WHERE ID_Device = "'+str(id)+'" ')
+
+        for part in cursor.fetchall():
+            self.ids.scroll_parts.add_widget(Button(text=str(part[2]),size_hint_y=None,height=('30dp')))
+
+
+    def creat_txt(self):
+        file_jsom = open('get_id.txt', 'w')
+        file = file_jsom.write(str(self.text_id))
+        file_jsom.close()
+
+    def insert_parts(self):
+        print('teste')
+        self.parent.add_widget(InsertDeviceParts())
+
+    def fechar(self,msg,*args):
         self.clear_widgets()
+        # ScreenEstoque().ids.float.remove_widget(msg.parent.parent)
+        # print('fechar')
 
 
 class ButtonStock(BoxLayout):
@@ -728,21 +762,16 @@ class ButtonStock(BoxLayout):
                        'WHERE ID = "'+id+'";')
 
         content = cursor.fetchall()
-
-
-        self.parent.parent.parent.parent.parent.add_widget(OpenPartsDevices(
-            content[0][0], content[0][1]+' - '+content[0][3], content[0][4], str(content[0][5]) + '/' + str(content[0][6])))
-
-            # text_data=f'Aparelho: [b]{content[0][1]}[/b]\n'
-            #           f'{content[0][2]}\n'
-            #           f'{content[0][3]}\n'
-            #           f'{content[0][4]}\n'
-            #           f'{content[0][5]}\\'
-            #           f'{content[0][6]}\n'
-            #           f'{content[0][7]}'))
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').add_widget(OpenPartsDevices(
+            content[0][0], content[0][1]+' - '+content[0][3], content[0][4], str(content[0][5]) + '/' + str(content[0][6]), str(content[0][4])))
 
 
 class ScreenEstoque(Screen):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+
+    def closed(self,roots):
+        self.remove_widget(roots)
 
     def on_pre_enter(self,*args):
         self.show_device()
@@ -777,7 +806,6 @@ class ScreenEstoque(Screen):
             self.show_device()
 
     def save_deviced(self,*args):
-
         aparelho = str(self.ids.aparelho.text)
         marca = str(self.ids.marca.text)
         modelo = str(self.ids.modelo.text)
@@ -806,11 +834,101 @@ class ScreenEstoque(Screen):
     def add_parts(self, *args):
         self.add_widget(InsertDeviceParts())
 
-class InsertDeviceParts(MDBoxLayout):
+class InsertDeviceParts(Scatter):
+    quant = 0
+    def __init(self,**kwargs):
+        super().__init__(*kwargs)
 
-    def fechar(self, *args):
-        self.clear_widgets()
 
+    def fechar(self, msg,*args):
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').remove_widget(self)
+
+    def cont(self,bool,*args):
+        """
+        Function to alter the field of amounths
+        Função para alterar o campo da quantidade
+        :param bool: Receive True or False to valid the sinal + or _
+        :return:
+        """
+
+        print('entrou cont')
+
+        self.ids.controller_cont.text = ''
+        if bool:
+            self.quant += 1
+            self.ids.controller_cont.text += str(self.quant)
+        elif self.quant <= 0:
+            self.ids.controller_cont.text = str(0)
+        else:
+            self.quant -= 1
+            self.ids.controller_cont.text = str(self.quant)
+
+        print('saiu cont')
+
+        # return self.quant
+
+    def valid(self,*args):
+
+        print('entoru valid')
+
+        self.parts = self.ids.controller_pecas.text
+        self.model = self.ids.controller_modelo.text
+        self.serial = self.ids.controller_serial.text
+
+        self.valor_unit = self.ids.controller_valor.text
+        self.valor_soma = self.ids.controller_soma.text
+        self.cont = self.ids.controller_cont.text
+        print('saiu valid')
+
+    def on_texto(self,*args):
+        self.valid()
+
+        print('entrou on_texto')
+        if self.ids.controller_cont.text == '' or self.ids.controller_cont.text == 0:
+            self.ids.controller_cont.text = '1'
+            self.cont = 1
+        else:
+            self.cont = int(self.ids.controller_cont.text)
+
+        # here is only to valid the field text
+        # aqui é apenas para validar o texto do campo
+        text_valor = self.ids.controller_valor.text
+        text_cont = self.ids.controller_cont.text
+
+
+        if text_valor >= 'a':
+            self.ids.controller_valor.text = ''
+        else:
+            pass
+
+        if text_cont >='a':
+            self.ids.controller_cont.text = ''
+        else:
+            pass
+
+        try:
+            soma = float(self.valor_unit) * int(self.cont)
+        except ValueError:
+            soma = 0.0
+
+        self.ids.controller_soma.text = str(soma)
+
+        print('saiu on_texto')
+
+    def save_data_deviced(self):
+
+        file_id = open('get_id.txt','r')
+        id = file_id.read()
+        file_id.close()
+
+        self.valid()
+
+
+        conn = sqlite3.connect('Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO StockPartsDevices(ID_Device, Peca, Modelo, Serial, ValorUnit, Quantidade)'
+                       'VALUES("'+ str(id) +'", "'+ str(self.parts) +'", "'+ str(self.model) +'", "'+ str(self.serial) +'", "'+ str(self.valor_unit) +'", "'+ str(self.cont) +'" )')
+        conn.commit()
 
 class EletronicaApp(MDApp):
     def build(self):
