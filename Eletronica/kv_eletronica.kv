@@ -150,10 +150,12 @@
                         hint_text:'CPF:'
                         font_size:'30sp'
                         max_text_length:11
-#                        color_mode:'custom'
+                        line_color_normal:0,0,0,1
                         line_color_focus:0,0,0,1
+                        hint_text_color_normal:0,0,0,1
+                        icon_right:'magnify'
+                        icon_right_color_normal:0,0,0,1
                         pos_hint:{'center_x':.5,'center_y':.7}
-    #                    line_color_normal: app.theme_cls.accent_color
                         id:login_cpf
                     MDFillRoundFlatIconButton:
                         pos_hint:{'center_x':.5,'center_y':.55}
@@ -225,10 +227,12 @@
                     size_hint_x:None
                     width:'400dp'
                     hint_text:'Nome:'
+                    hint_text_color_normal:0,0,0,1
                     required:True
                     helper_text_mode:'on_error'
                     helper_text:'* Obrigatório'
-                    line_color_focus:0,0,0,1
+                    line_color_normal:0,0,0,1
+                    line_color_focus:0,0,1,1
                     mode:'rectangle'
                     pos_hint:{'x':.1,'center_y':.3}
                     id:cadastro_nome
@@ -237,8 +241,10 @@
                     width:'200dp'
                     mode:'rectangle'
                     hint_text:'CPF:'
+                    hint_text_color_normal:0,0,0,1
                     max_text_length:11
-                    line_color_focus:0,0,0,1
+                    line_color_normal:0,0,0,1
+                    line_color_focus:0,0,1,1
                     pos_hint:{'x':.1,'center_y':.8}
 #                    line_color_normal: app.theme_cls.accent_color
                     id:cadastro_cpf
@@ -250,8 +256,9 @@
                         size_hint_x:None
                         width:'400dp'
                         hint_text:'Logradouro:'
-#                        color_mode:'custom'
-                        line_color_focus: 0,0,0,1
+                        hint_text_color_normal:0,0,0,1
+                        line_color_normal:0,0,0,1
+                        line_color_focus:0,0,1,1
                         mode:'rectangle'
                         pos_hint:{'x':.1}
                         icon_right: "arrow-down-drop-circle-outline"
@@ -267,9 +274,11 @@
                         size_hint_x:None
                         width:'400dp'
                         hint_text:'Endereço:'
+                        hint_text_color_normal:0,0,0,1
                         pos_hint:{'x':.1}
                         mode:'rectangle'
-                        line_color_focus:0,0,0,1
+                        line_color_normal:0,0,0,1
+                        line_color_focus:0,0,1,1
                         id:cadastro_endereco
 
                     MDTextField:
@@ -277,15 +286,19 @@
                         width:'100dp'
                         mode:'rectangle'
                         hint_text:'N°:'
+                        hint_text_color_normal:0,0,0,1
                         pos_hint:{'x':.1}
-                        line_color_focus:0,0,0,1
+                        line_color_normal:0,0,0,1
+                        line_color_focus:0,0,1,1
                         id:cadastro_numero
                 MDTextField:
                     size_hint_x:None
                     width:'530dp'
                     mode:'rectangle'
                     hint_text:'Bairro'
-                    line_color_focus:0,0,0,1
+                    hint_text_color_normal:0,0,0,1
+                    line_color_normal:0,0,0,1
+                    line_color_focus:0,0,1,1
                     pos_hint:{'x':.1}
                     id:cadastro_bairro
 
@@ -296,8 +309,10 @@
                     pos_hint:{'x':.1}
                     mode:'rectangle'
                     hint_text:'Tel:'
+                    hint_text_color_normal:0,0,0,1
                     max_text_length:8
-                    line_color_focus:0,0,0,1
+                    line_color_normal:0,0,0,1
+                    line_color_focus:0,0,1,1
                     id:cadastro_telefone
 
                 MDTextField:
@@ -306,7 +321,9 @@
                     pos_hint:{'x':.1}
                     mode:'rectangle'
                     hint_text:'Celular:'
-                    line_color_focus:0,0,0,1
+                    hint_text_color_normal:0,0,0,1
+                    line_color_normal:0,0,0,1
+                    line_color_focus:0,0,1,1
                     id:cadastro_celular
 
                 MDTextField:
@@ -315,6 +332,7 @@
                     font_size:'30sp'
                     pos_hint:{'x':.1}
                     hint_text:'Email:'
+                    hint_text_color_normal:0,0,0,1
                     id:cadastro_email
                     line_color_normal:1,.8,0,1
                     color_mode:'accent'
@@ -884,6 +902,7 @@
 <ButtonStock>:
     size_hint_y:None
     height:'60dp'
+    number:''
     text_id:''
     rotulo:''
     sub_text:''
@@ -904,6 +923,12 @@
             color:0,0,0,1
         BoxLayout:
             MDLabel:
+                size_hint_x:None
+                width:'50dp'
+#                halign:'left'
+                color:1,0,0,1
+                text:root.number
+            MDLabel:
                 halign:'center'
                 font_style:'Caption'
                 color:0,0,0,1
@@ -915,6 +940,45 @@
                 color:1,0,0,1
                 text:root.prateleira
 
+    Button:
+        size_hint_x:None
+        width:'30dp'
+        border:0,0,0,0
+        text:'X'
+
+<ButtonParts>:
+    size_hint_y:None
+    height:'40dp'
+    ripple_behavior:True
+    md_bg_color:1,1,1,.6
+    namber:''
+    get_id:''
+    labels:''
+    amount:''
+    on_release:root.view_parts()
+    MDLabel:
+        size_hint_x:None
+        width:'20dp'
+        color:0,0,0,1
+        text:root.namber
+    MDLabel:
+        halign:'center'
+        color:0,0,0,1
+        text:root.labels
+    MDLabel:
+        halign:'right'
+        font_size:'15dp'
+        color:0,0,0,1
+        text:root.amount
+    Button:
+        size_hint_x:None
+        width:'30dp'
+        border:0,0,0,0
+        font_size:'25dp'
+        text:'X'
+        on_release:root.popup(root.get_id)
+
+
 <OpenPartsDevices>:
     size_hint:None,None
     size:'900dp','500dp'
@@ -923,6 +987,7 @@
     texto:''
     sub_text:''
     prateleira:''
+    id:parts_devices
     Scatter:
         do_rotation:False
         do_scale:False
@@ -944,11 +1009,14 @@
                     prateleira:root.prateleira
                     change_func:False
                 MDLabel:
+                    size_hint:None,None
+                    width:'300dp'
+                    height:'30dp'
                     text:''
                     color:0,0,0,1
                     halign:'center'
                     markup:True
-                    pos_hint:{'center_x':.2,'center_y':.7}
+                    pos_hint:{'center_x':.2,'center_y':.65}
                     id:info
                 MDRaisedButton:
                     text:'Inserir'
@@ -1223,7 +1291,7 @@
                     multiline:False
                     hint_text:'0'
                     text:'0'
-#                    on_text:root.on_texto()
+                    on_text:root.on_texto()
                     id:controller_cont
                 Button:
                     size_hint:None,None

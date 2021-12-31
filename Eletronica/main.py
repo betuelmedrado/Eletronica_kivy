@@ -9,8 +9,9 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.list import OneLineIconListItem
 from kivymd.uix.card import MDCard
+from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import Snackbar
-# from kivymd.toast import toast  ===============toast<
+from kivymd.toast import toast # To show a message
 
 #Kivy
 from kivy.lang import Builder
@@ -27,6 +28,7 @@ from kivy.uix.button import Button
 from kivy.properties import StringProperty
 from kivy.metrics import dp
 from kivy.uix.scatter import ScatterPlane, Scatter
+from kivy.uix.image import Image
 
 import sqlite3
 import json
@@ -334,6 +336,7 @@ class Aparelho(BoxLayout,Date): # content of a popup
             MDApp.get_running_app().root.ids.manager.current = 'screenimage'
         except:
             print('ERRO class Aparelho')
+
     def snackbar(self, texto):
         snack = SnackBar(texto)
         snack.open()
@@ -692,6 +695,53 @@ class Check(MDBoxLayout):
 class NewUsedParts(Screen):
     pass
 
+class ButtonParts(MDCard):
+    def __init__(self,namber='', id='', label='',amount='',**kwargs):
+        super().__init__(**kwargs)
+        self.namber = str(namber)
+        self.get_id = id
+        self.labels = label
+        self.amount = amount
+
+    def view_parts(self):
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').add_widget(InsertDeviceParts(self.get_id,True))
+
+
+    def popup(self,id,*args,**kwargs):
+
+        self.id_root = id
+
+        box = BoxLayout(orientation='vertical')
+        box_button = BoxLayout(spacing='20dp', padding='10dp')
+
+        image = Image(source='image/atencao.png')
+
+        popup = Popup(title='Deseja excluir essa peça?', size_hint=(None, None), size=('300dp', '200dp'), content=box)
+
+        bt_sim = Button(text='Sim', on_press=self.delet_parts, on_release=popup.dismiss)
+        bt_nao = Button(text='Não', on_release=popup.dismiss)
+
+        box_button.add_widget(bt_sim)
+        box_button.add_widget(bt_nao)
+
+        box.add_widget(image)
+        box.add_widget(box_button)
+
+        popup.open()
+
+
+    def delet_parts(self,*args):
+
+        try:
+            conn = sqlite3.connect('Eletronica.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM StockPartsDevices '
+                           'WHERE ID == "'+self.id_root+'"; ')
+            conn.commit()
+            conn.close()
+            toast(f'Dados deletado com sucesso')
+        except:
+            toast('Erro! ao deletar os dados')
 
 class OpenPartsDevices(MDBoxLayout):
 
@@ -725,8 +775,9 @@ class OpenPartsDevices(MDBoxLayout):
         cursor.execute('SELECT * FROM StockPartsDevices '
                        'WHERE ID_Device = "'+str(id)+'" ')
 
-        for part in cursor.fetchall():
-            self.ids.scroll_parts.add_widget(Button(text=str(part[2]),size_hint_y=None,height=('30dp')))
+        for n, part in enumerate(cursor.fetchall()):
+            self.ids.scroll_parts.add_widget(BoxLayout(size_hint_y=None,height=('7dp')))
+            self.ids.scroll_parts.add_widget(ButtonParts(namber=str(n+1), id=str(part[0]),label=part[2], amount='Quant/'+str(part[7])))
 
 
     def creat_txt(self):
@@ -735,7 +786,6 @@ class OpenPartsDevices(MDBoxLayout):
         file_jsom.close()
 
     def insert_parts(self):
-        print('teste')
         self.parent.add_widget(InsertDeviceParts())
 
     def fechar(self,msg,*args):
@@ -745,9 +795,10 @@ class OpenPartsDevices(MDBoxLayout):
 
 
 class ButtonStock(BoxLayout):
-    def __init__(self, text_id='',texto='',sub='',prateleira='', **kwargs):
+    def __init__(self,number='', text_id='',texto='',sub='',prateleira='', **kwargs):
         super().__init__(**kwargs)
 
+        self.number = str(number)
         self.text_id = str(text_id)
         self.rotulo = str(texto)
         self.sub_text = str(sub)
@@ -782,10 +833,11 @@ class ScreenEstoque(Screen):
         data = cursor.execute('SELECT * FROM estoque')
 
         self.ids.show_parts.clear_widgets()
-        for iten in data.fetchall():
+        for n, iten in enumerate(data.fetchall()):
 
             self.ids.show_parts.add_widget(BoxLayout(size_hint_y=None,height=('11dp')))
-            self.ids.show_parts.add_widget(ButtonStock(text_id=iten[0], texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
+
+            self.ids.show_parts.add_widget(ButtonStock(number=str(n+1),text_id=iten[0], texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
 
     def search_device(self,*args):
         aparelho = str(self.ids.pesq_aparelho.text).title()
@@ -798,9 +850,9 @@ class ScreenEstoque(Screen):
                        'WHERE Aparelho LIKE "'+aparelho+'%" AND Marca LIKE "'+marca+'%" AND Modelo LIKE "'+modelo+'%" ')
         self.ids.show_parts.clear_widgets()
 
-        for iten in cursor.fetchall():
+        for n, iten in enumerate(cursor.fetchall()):
             self.ids.show_parts.add_widget(BoxLayout(size_hint_y=None, height=('11dp')))
-            self.ids.show_parts.add_widget(ButtonStock(text_id=iten[0],texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
+            self.ids.show_parts.add_widget(ButtonStock(number=str(n+1),text_id=iten[0],texto=iten[1] + ' - ' + iten[3], sub=iten[4], prateleira=str(iten[5]) + '/' + str(iten[6])))
 
         if aparelho == '' and marca == '' and modelo == '':
             self.show_device()
@@ -815,30 +867,69 @@ class ScreenEstoque(Screen):
 
         # situacao = 'Usado'
         # valor = '50.0'
+        try:
+            conn = sqlite3.connect('Eletronica.db')
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO estoque(Aparelho, Modelo, Marca, Avarias, Prateleira, EspacoPrateleira)'
+                           'VALUES("'+ aparelho +'","'+ modelo +'","'+ marca +'","'+ avarias +'","'+ prateleira +'","'+ espaco +'")')
+            conn.commit()
 
-        conn = sqlite3.connect('Eletronica.db')
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO estoque(Aparelho, Modelo, Marca, Avarias, Prateleira, EspacoPrateleira)'
-                       'VALUES("'+ aparelho +'","'+ modelo +'","'+ marca +'","'+ avarias +'","'+ prateleira +'","'+ espaco +'")')
-        conn.commit()
+            self.ids.aparelho.text = ''
+            self.ids.marca.text = ''
+            self.ids.modelo.text = ''
+            self.ids.avarias.text = ''
+            self.ids.prateleira.text = ''
+            self.ids.espaco.text = ''
 
-        self.ids.aparelho.text = ''
-        self.ids.marca.text = ''
-        self.ids.modelo.text = ''
-        self.ids.avarias.text = ''
-        self.ids.prateleira.text = ''
-        self.ids.espaco.text = ''
-
-        self.show_device()
+            self.show_device()
+            toast('Os dados foram salvos com sucesso!')
+        except:
+            toast('ERRO! Os dados não foram salvos!!!')
 
     def add_parts(self, *args):
         self.add_widget(InsertDeviceParts())
 
 class InsertDeviceParts(Scatter):
     quant = 0
-    def __init(self,**kwargs):
-        super().__init__(*kwargs)
+    pos_erro = 0
+    pos_cont = 0
+    valid_content= []
 
+    def __init__(self,get_id='',edit=False, **kwargs):
+        super().__init__(**kwargs)
+        self.get_id = get_id
+        self.edit = edit
+
+        # Here is to open the insertDeviceParts with thes field amount
+        # Aqui é para abrir o insertDeviceParts com o valor do campo
+        if edit:
+            self.editing()
+
+    def editing(self):
+        try:
+            conn = sqlite3.connect('Eletronica.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM StockPartsDevices '
+                           'WHERE ID == "'+ str(self.get_id) +'" ')
+            content = cursor.fetchall()
+
+            soma_valor = float(content[0][5])
+            soma_cont = int(content[0][7])
+            soma = float(soma_valor * soma_cont)
+
+            self.ids.controller_pecas.text = str(content[0][2])
+            self.ids.controller_pecas.readonly = True
+            self.ids.controller_modelo.text = str(content[0][3])
+            self.ids.controller_modelo.readonly = True
+            self.ids.controller_serial.text = str(content[0][4])
+            self.ids.controller_serial.readonly = True
+            self.ids.controller_valor.text = str(content[0][5])
+            self.ids.controller_soma.text = f'{soma:.2f}'
+            self.ids.controller_cont.text = str(content[0][7])
+
+            self.valid_content.append(content[0])
+        except:
+            pass
 
     def fechar(self, msg,*args):
         MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').remove_widget(self)
@@ -850,85 +941,181 @@ class InsertDeviceParts(Scatter):
         :param bool: Receive True or False to valid the sinal + or _
         :return:
         """
+        try:
+            controller_cont = self.ids.controller_cont.text
+            self.ids.controller_cont.text = ''
+            self.quant = int(controller_cont)
 
-        print('entrou cont')
+            if bool: # if the button +  is pressing ========<
+                self.quant += 1
+                self.ids.controller_cont.text += str(self.quant)
 
-        self.ids.controller_cont.text = ''
-        if bool:
-            self.quant += 1
-            self.ids.controller_cont.text += str(self.quant)
-        elif self.quant <= 0:
-            self.ids.controller_cont.text = str(0)
-        else:
-            self.quant -= 1
-            self.ids.controller_cont.text = str(self.quant)
+                try:
+                    valor = float(self.ids.controller_valor.text) * int(self.ids.controller_cont.text)
+                except:
+                    valor = 0
 
-        print('saiu cont')
+                self.ids.controller_soma.text = f'{valor:.2f}'
+            elif self.quant <= 0:
+                self.ids.controller_cont.text = str(0)
+            else: # if the button - is press =============<
+                self.quant -= 1
+                self.ids.controller_cont.text = str(self.quant)
 
-        # return self.quant
+                try:
+                    valor = float(self.ids.controller_valor.text) * int(self.ids.controller_cont.text)
+                except:
+                    valor = 0
+                self.ids.controller_soma.text = f'{valor:.2f}'
+        except:
+            pass
 
     def valid(self,*args):
+        try:
+            self.parts = self.ids.controller_pecas.text
+            self.model = self.ids.controller_modelo.text
+            self.serial = self.ids.controller_serial.text
 
-        print('entoru valid')
-
-        self.parts = self.ids.controller_pecas.text
-        self.model = self.ids.controller_modelo.text
-        self.serial = self.ids.controller_serial.text
-
-        self.valor_unit = self.ids.controller_valor.text
-        self.valor_soma = self.ids.controller_soma.text
-        self.cont = self.ids.controller_cont.text
-        print('saiu valid')
-
-    def on_texto(self,*args):
-        self.valid()
-
-        print('entrou on_texto')
-        if self.ids.controller_cont.text == '' or self.ids.controller_cont.text == 0:
-            self.ids.controller_cont.text = '1'
-            self.cont = 1
-        else:
-            self.cont = int(self.ids.controller_cont.text)
-
-        # here is only to valid the field text
-        # aqui é apenas para validar o texto do campo
-        text_valor = self.ids.controller_valor.text
-        text_cont = self.ids.controller_cont.text
-
-
-        if text_valor >= 'a':
-            self.ids.controller_valor.text = ''
-        else:
+            self.valor_unit = self.ids.controller_valor.text
+            self.valor_soma = self.ids.controller_soma.text
+            self.cont = self.ids.controller_cont.text
+        except:
             pass
 
-        if text_cont >='a':
-            self.ids.controller_cont.text = ''
-        else:
-            pass
+    def on_texto(self,*args,**kwargs):
 
         try:
-            soma = float(self.valor_unit) * int(self.cont)
-        except ValueError:
-            soma = 0.0
+            # self.valid()
 
-        self.ids.controller_soma.text = str(soma)
+            # if self.ids.controller_cont.text == '' or self.ids.controller_cont.text == 0:
+            #     self.ids.controller_cont.text = '1'
+            #     self.cont = 1
+            # else:
+            #     self.cont = int(self.ids.controller_cont.text)
 
-        print('saiu on_texto')
+
+            # here is only to valid the field text
+            # aqui é apenas para validar o texto do campo
+            text_valor = self.ids.controller_valor.text
+            text_cont = self.ids.controller_cont.text
+
+            #  Text_valor here is to  valid the field of entry of number
+            # aqui é para validar o campo de entrada do número
+            if text_valor.isnumeric():
+                self.pos_erro = len(text_valor)
+            elif '.' in text_valor:
+                # this "try" is to see if the field does sum
+                # esta "try" é para ver se o campo soma
+                try:
+                    s = float(text_valor) + 1
+                    self.pos_erro = len(text_valor)
+                except ValueError:
+                    self.ids.controller_valor.text = str(text_valor[0:self.pos_erro])
+                    print('Error in field valor unic')
+            elif text_valor == '':
+                self.pos_erro = 0
+            else:
+                if self.pos_erro > 0:
+                    self.ids.controller_valor.text = str(text_valor[0:self.pos_erro])
+                else:
+                    self.ids.controller_valor.text = ''
+
+            # Text_cont ==========
+            if text_cont.isnumeric():
+                self.pos_cont = len(text_cont)
+            elif text_cont == '':
+                self.pos_cont = 0
+            else:
+                if self.pos_cont > 0:
+                    self.ids.controller_cont.text = str(text_cont[0:self.pos_cont])
+                else:
+                    self.ids.controller_cont.text = '0'
+
+
+            # try:
+            #     soma = float(self.valor_unit) * int(self.cont)
+            # except ValueError:
+            #     soma = 0.0
+            #
+            # self.ids.controller_soma.text = str(soma)
+        except:
+            pass
 
     def save_data_deviced(self):
-
-        file_id = open('get_id.txt','r')
-        id = file_id.read()
-        file_id.close()
-
         self.valid()
 
+        try:
+            # Here change the seting of box insertPartsDevices
+            if self.edit:
+                try:
+                    if float(self.valor_unit) != float(self.valid_content[0][5]) and int(self.cont) != int(self.valid_content[0][7]):
+                        self.popup_save(f'Campos alterados:\nValor:  {self.valid_content[0][5]}  =>  {self.valor_unit}\n'
+                                    f'Quantidade:  {self.valid_content[0][7]}  =>  {self.cont}')
+                    elif float(self.valor_unit) != float(self.valid_content[0][5]):
+                        self.popup_save(f'Campo alterado:\nValor  {self.valid_content[0][5]}  =>  {self.valor_unit}')
+                    elif int(self.cont) != int(self.valid_content[0][7]):
+                        self.popup_save(f'Campo alterado:\nQuantidade alterada:  {self.valid_content[0][7]}  =>  {self.cont}')
+                    else:
+                        pass
 
-        conn = sqlite3.connect('Eletronica.db')
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO StockPartsDevices(ID_Device, Peca, Modelo, Serial, ValorUnit, Quantidade)'
-                       'VALUES("'+ str(id) +'", "'+ str(self.parts) +'", "'+ str(self.model) +'", "'+ str(self.serial) +'", "'+ str(self.valor_unit) +'", "'+ str(self.cont) +'" )')
-        conn.commit()
+                except ValueError:
+                    self.valor_unit = 0
+                    if float(self.valor_unit) != float(self.valid_content[0][5]):
+                        self.popup_save(f'Campo alterado {self.valid_content[0][5]} => {self.valor_unit}')
+                    elif int(self.cont) != int(self.valid_content[0][7]):
+                        self.popup_save(f'Campo alterado:\nQuantidade alterada:{self.valid_content[0][7]} => {self.cont}')
+            else:
+                file_id = open('get_id.txt','r')
+                id = file_id.read()
+                file_id.close()
+
+                conn = sqlite3.connect('Eletronica.db')
+                cursor = conn.cursor()
+                cursor.execute('INSERT INTO StockPartsDevices(ID_Device, Peca, Modelo, Serial, ValorUnit, Quantidade)'
+                               'VALUES("'+ str(id) +'", "'+ str(self.parts) +'", "'+ str(self.model) +'", "'+ str(self.serial) +'", "'+ str(self.valor_unit) +'", "'+ str(self.cont) +'" )')
+                conn.commit()
+                conn.close()
+            self.fechar(self)
+            toast('Dados salvos com sucesso!')
+        except:
+            toast('Erro! Ao salvar dados')
+
+    def update(self,*args,**kwargs):
+        self.valid()
+        try:
+            conn = sqlite3.connect('Eletronica.db')
+            cursor = conn.cursor()
+            cursor.execute('UPDATE StockPartsDevices '
+                           'SET ValorUnit = "'+str(self.valor_unit)+'", Quantidade = "'+ str(self.cont) +'" '
+                           'WHERE ID == "'+ str(self.get_id) +'" ')
+            conn.commit()
+            conn.close()
+            toast('Dados alterado com sucesso!')
+        except:
+            toast('Erro! ao alterar os dados!!!')
+
+    def popup_save(self,msg='',*args,**kwargs):
+
+        box = BoxLayout(orientation='vertical')
+        box_button = BoxLayout(spacing='20dp',padding='5dp')
+
+        image = Image(source='image/atencao.png')
+        label = MDLabel(text=str(msg),halign='center')
+
+        popup = Popup(title='Alterar dados?',size_hint=(None,None),size=('300dp','200dp'), content=box)
+
+        bt_sim = Button(text='Sim', on_press = self.update, on_release = popup.dismiss)
+        bt_nao = Button(text='Não', on_release=popup.dismiss)
+
+        box_button.add_widget(bt_sim)
+        box_button.add_widget(bt_nao)
+
+        box.add_widget(image)
+        box.add_widget(label)
+        box.add_widget(box_button)
+
+        popup.open()
+
 
 class EletronicaApp(MDApp):
     def build(self):
