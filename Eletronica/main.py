@@ -12,6 +12,7 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import Snackbar
 from kivymd.toast import toast # To show a message
+from kivymd.uix.imagelist import SmartTileWithStar
 
 #Kivy
 from kivy.lang import Builder
@@ -33,8 +34,11 @@ from kivy.uix.image import Image
 import sqlite3
 import json
 from datetime import date
+import os
 
 Window.size = 1200, 700
+
+
 
 class Date:
     day = date.today().day
@@ -51,6 +55,58 @@ class Manager(BoxLayout):
 class ScreenImage(Screen):
     pass
 
+class BtClientLogin(MDBoxLayout):
+    map = {}
+    lista = []
+    def __init__(self, id, msg, *args, **kwargs):
+        super().__init__(**kwargs)
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
+        self.get_id = id
+        self.get_msg = str(msg)
+
+    def content_base(self):
+        """
+        To get the quant of returning client
+        :return: A list witch the quant of found client
+        """
+
+        dict_clientes = dict()
+
+
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT ID, Nome FROM cliente WHERE ID == "' + self.get_id + '"')
+        cliente = cursor.fetchall()
+
+            # for iten in cursor.fetchall():
+            #     self.map["ID"] = str(iten[0])
+            #     self.map["Cadatro"] = str(iten[1])
+            #     self.map["Nome"] = str(iten[2])
+            #     self.map["CPF"] = str(iten[3])
+            #     self.map["Bairro"] = str(iten[4])
+            #     self.map["Logradouro"] = str(iten[5])
+            #     self.map["Endereço"] = str(iten[6])
+            #     self.map["Numero"] = str(iten[7])
+            #     self.map["Telefone"] = str(iten[8])
+            #     self.map["Celular"] = str(iten[9])
+            #     self.map["Email"] = str(iten[10])
+            #     self.lista.append(self.map.copy())
+
+        dict_clientes["ID"] = cliente[0][0]
+        dict_clientes["Nome"] = cliente[0][1]
+
+        with open('getNome.json', 'w', encoding='utf-8') as nom:
+            json.dump(dict_clientes, nom, indent=2)
+
+        MDApp.get_running_app().root.ids.manager.current = 'screenview'
+
+        conn.close()
+        self.lista.clear()
+        self.map.clear()
+
+
 class ScreenLogin(Screen):
 
     lista = []
@@ -58,6 +114,32 @@ class ScreenLogin(Screen):
     def __init__(self,*args,**kwargs):
         super(ScreenLogin,self).__init__(**kwargs)
 
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
+    def see_scroll_client(self):
+        cpf = self.ids.login_cpf.text
+        nome = self.ids.nome.text
+
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+        cursor = conn.cursor()
+
+        if nome == '' and cpf == '':
+            self.ids.scroll_client.clear_widgets()
+        elif cpf != '':
+            cursor.execute('SELECT ID, Nome FROM cliente '
+                           'WHERE Cpf == "' + str(cpf) + '" ')
+
+            self.ids.scroll_client.clear_widgets()
+            for data in cursor.fetchall():
+                self.ids.nome.text = str(data[1])
+        else:
+            cursor.execute('SELECT ID, Nome FROM cliente '
+                           'WHERE Nome LIKE "' + str(nome) + '%" ')
+
+            self.ids.scroll_client.clear_widgets()
+            for data in cursor.fetchall():
+                self.ids.scroll_client.add_widget(BtClientLogin(str(data[0]), str(data[1])))
+        conn.close()
 
     def content_base(self):
         """
@@ -66,24 +148,27 @@ class ScreenLogin(Screen):
         """
         self.cpf = self.ids.login_cpf.text
 
-        conn = sqlite3.connect('Eletronica.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM cliente WHERE CPF == "' + self.cpf + '"')
+        if self.cpf == '':
+            pass
+        else:
+            conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM cliente WHERE CPF == "' + self.cpf + '"')
 
-        for iten in cursor.fetchall():
-            self.map["ID"] = str(iten[0])
-            self.map["Cadatro"] = str(iten[1])
-            self.map["Nome"] = str(iten[2])
-            self.map["CPF"] = str(iten[3])
-            self.map["Bairro"] = str(iten[4])
-            self.map["Logradouro"] = str(iten[5])
-            self.map["Endereço"] = str(iten[6])
-            self.map["Numero"] = str(iten[7])
-            self.map["Telefone"] = str(iten[8])
-            self.map["Celular"] = str(iten[9])
-            self.map["Email"] = str(iten[10])
-            self.lista.append(self.map.copy())
-
+            for iten in cursor.fetchall():
+                self.map["ID"] = str(iten[0])
+                self.map["Cadatro"] = str(iten[1])
+                self.map["Nome"] = str(iten[2])
+                self.map["CPF"] = str(iten[3])
+                self.map["Bairro"] = str(iten[4])
+                self.map["Logradouro"] = str(iten[5])
+                self.map["Endereço"] = str(iten[6])
+                self.map["Numero"] = str(iten[7])
+                self.map["Telefone"] = str(iten[8])
+                self.map["Celular"] = str(iten[9])
+                self.map["Email"] = str(iten[10])
+                self.lista.append(self.map.copy())
+            conn.close()
         if len(self.lista) == 1:
             self.get_data_cliente(self.lista)
         elif len(self.lista) == 0:
@@ -103,19 +188,23 @@ class ScreenLogin(Screen):
 
         dict_clientes = {}
 
-        if len(cliente) < 1:
-            self.ids.warning.text = 'Nome ou CPF invalido!'
-            self.ids.float_layout.add_widget(ButtonRegister())
+        if self.cpf == '':
+            pass
         else:
-            self.ids.warning.text = ''
-            dict_clientes["ID"] = cliente[0]["ID"]
-            dict_clientes["Nome"] = cliente[0]["Nome"]
-            dict_clientes["CPF"] = cliente[0]["CPF"]
+            if len(cliente) < 1:
+                # self.ids.warning.text = 'Nome ou CPF invalido!'
+                toast('      Nome ou CPF invalido!      \nSem cadastro no banco de dados! ',duration=5)
+                self.ids.float_layout.add_widget(ButtonRegister())
+            else:
+                self.ids.float_layout.remove_widget(ButtonRegister())
+                dict_clientes["ID"] = cliente[0]["ID"]
+                dict_clientes["Nome"] = cliente[0]["Nome"]
+                dict_clientes["CPF"] = cliente[0]["CPF"]
 
-            with open('getNome.json','w',encoding='utf-8') as nom:
-                json.dump(dict_clientes, nom, indent=2)
+                with open('getNome.json','w',encoding='utf-8') as nom:
+                    json.dump(dict_clientes, nom, indent=2)
 
-            MDApp.get_running_app().root.ids.manager.current = 'screenview'
+                MDApp.get_running_app().root.ids.manager.current = 'screenview'
 
     def pop_entry(self, cliente, *args,**kwargs):
 
@@ -134,6 +223,10 @@ class ScreenLogin(Screen):
 
         pop.open()
 
+    def limpar(self):
+        self.ids.login_cpf.text = ''
+        self.ids.nome.text = ''
+
     def valor_button(self):
         print('entrou')
 
@@ -142,6 +235,8 @@ class ScreenRegister(Screen,Date):
 
     def __init__(self,**kwargs):
         super(ScreenRegister,self).__init__(**kwargs)
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
 
         self.date = self.date_current
 
@@ -161,32 +256,36 @@ class ScreenRegister(Screen,Date):
         email = self.ids.cadastro_email.text
 
 
-        conn = sqlite3.connect('Eletronica.db')
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         cursor = conn.cursor()
-        try:
-            cursor.execute('INSERT INTO cliente(Cadastro,Nome,CPF,Logradouro,Endereço,Bairro,Numero,Telefone,Celular,Emeil)'
-                           'VALUES ("'+cadastro+'","'+nome+'","'+cpf+'","'+logradouro+'","'+endereco+'","'+bairro+'","'+numero+'","'+telefone+'","'+celular+'","'+email+'");')
-            conn.commit()
+        if nome == '':
+            toast('Sem informação do nome ou Cpf!', duration=8)
+        else:
+            try:
+                cursor.execute('INSERT INTO cliente(Cadastro,Nome,CPF,Logradouro,Endereço,Bairro,Numero,Telefone,Celular,Emeil)'
+                               'VALUES ("'+cadastro+'","'+nome+'","'+cpf+'","'+logradouro+'","'+endereco+'","'+bairro+'","'+numero+'","'+telefone+'","'+celular+'","'+email+'");')
+                conn.commit()
 
-            self.ids.cadastro_nome.text = ''
-            self.ids.cadastro_cpf.text = ''
-            self.ids.cadastro_logradouro.text =''
-            self.ids.cadastro_endereco.text = ''
-            self.ids.cadastro_bairro.text = ''
-            self.ids.cadastro_numero.text = ''
-            self.ids.cadastro_telefone.text = ''
-            self.ids.cadastro_celular.text =''
-            self.ids.cadastro_email.text = ''
-            self.ids.label_warning.text = ''
-            # self.ids.cadastro_cpf.color_mode = 'none'
-            self.ids.cadastro_cpf.line_color_focus = 0, 0, 0, 1
-        except sqlite3.IntegrityError:
-            self.ids.label_warning.text = f'CPF ({str(cpf)}) já cadastrado'
-            self.ids.cadastro_cpf.color_mode = 'custom'
-            self.ids.cadastro_cpf.line_color_focus = 1,0,0,1
+                self.ids.cadastro_nome.text = ''
+                self.ids.cadastro_cpf.text = ''
+                self.ids.cadastro_logradouro.text =''
+                self.ids.cadastro_endereco.text = ''
+                self.ids.cadastro_bairro.text = ''
+                self.ids.cadastro_numero.text = ''
+                self.ids.cadastro_telefone.text = ''
+                self.ids.cadastro_celular.text =''
+                self.ids.cadastro_email.text = ''
+                # self.ids.cadastro_cpf.color_mode = 'none'
+                self.ids.cadastro_cpf.line_color_focus = 0, 0, 0, 1
+                toast('Cadastro feito com sucesso!')
+            except sqlite3.IntegrityError:
+                toast(f'CPF ({str(cpf)}) já cadastrado', duration=5)
+                self.ids.cadastro_cpf.color_mode = 'custom'
+                self.ids.cadastro_cpf.line_color_focus = 1,0,0,1
+        conn.close()
 
     def criaBd(self):
-        conn = sqlite3.connect('Eletronica.db')
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         conn.cursor()
         conn.execute('CREATE TABLE IF NOT EXISTS cliente(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ' 
                      'Cadastro TEXT NOT NULL,'
@@ -251,8 +350,11 @@ class IconListItem(OneLineIconListItem):
 # Essa class faz part da class "screeView"
 class Aparelho(BoxLayout,Date): # content of a popup
 
-    def __init__(self,*args,**kwargs):
-        super(Aparelho,self).__init__(**kwargs)
+    def __init__(self, *args,**kwargs):
+        super().__init__(**kwargs)
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
         self.date = self.date_current
 
         register = ScreenView()
@@ -282,6 +384,20 @@ class Aparelho(BoxLayout,Date): # content of a popup
             width_mult=4
         )
 
+    def file_image(self):
+        file = open('NameDevice.txt','r')
+        file_imag = file.read()
+        file.close()
+
+        if file_imag == '':
+            pass
+        else:
+            self.ids.modelo.text = str(file_imag[:-4])
+
+            # clearing the file after text field receive the text
+            clear_file = open('NameDevice.txt','w')
+            clear_file.write('')
+            clear_file.close()
 
     def inserir(self,x=''):        ##########
         self.ids.id_marca.text = str(x)
@@ -306,48 +422,61 @@ class Aparelho(BoxLayout,Date): # content of a popup
 
     def save_produto(self):
 
-        try:
-            with open('getNome.json', 'r') as id_n:
-                nome = json.load(id_n)
+        if self.ids.modelo.text == '' or self.ids.id_marca.text == '':
+            toast('Não foi inserido um aparelho ou uma marca!')
+        else:
+            try:
+                with open('getNome.json', 'r') as id_n:
+                    nome = json.load(id_n)
 
-            id_nome = nome['ID']
-            modelo = self.ids.modelo.text
-            marca = self.ids.id_marca.text
-            serial = self.ids.serial.text
-            defeito = self.ids.defeito.text
-            situacao = self.ids.cituacao.text
-            valorConserto = self.ids.valor_conserto.text
+                id_nome = nome['ID']
+                modelo = self.ids.modelo.text
+                marca = self.ids.id_marca.text
+                serial = self.ids.serial.text
+                defeito = self.ids.defeito.text
+                situacao = self.ids.cituacao.text
+                valorConserto = self.ids.valor_conserto.text
 
-            conn = sqlite3.connect('Eletronica.db')
-            conn.cursor()
-            conn.execute('INSERT INTO produtos(Entrada,ValorConserto,ClienteID,Modelo,Marca,Serial,Defeito,Situação)'
-                         'VALUES ("'+str(self.date)+'","'+str(valorConserto)+'" ,"'+str(id_nome)+'", "'+str(modelo)+'", "'+str(marca)+'","'+str(serial)+'" ,"'+str(defeito)+'", "'+str(situacao)+'")')
-            conn.commit()
+                conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+                conn.cursor()
+                conn.execute('INSERT INTO produtos(Entrada,ValorConserto,ClienteID,Modelo,Marca,Serial,Defeito,Situação)'
+                             'VALUES ("'+str(self.date)+'","'+str(valorConserto)+'" ,"'+str(id_nome)+'", "'+str(modelo)+'", "'+str(marca)+'","'+str(serial)+'" ,"'+str(defeito)+'", "'+str(situacao)+'")')
+                conn.commit()
+                conn.close()
 
-            self.ids.modelo.text = ''
-            self.ids.id_marca.text = ''
-            self.ids.serial.text = ''
-            self.ids.defeito.text = ''
-            self.ids.cituacao.text = ''
-            self.ids.valor_conserto.text = ''
+                self.ids.modelo.text = ''
+                self.ids.id_marca.text = ''
+                self.ids.serial.text = ''
+                self.ids.defeito.text = ''
+                self.ids.cituacao.text = ''
+                self.ids.valor_conserto.text = ''
 
-            self.snackbar('Aparelho salvo com sucesso!')
+                toast('Aparelho salvo com sucesso!')
 
-            MDApp.get_running_app().root.ids.manager.current = 'screenimage'
-        except:
-            print('ERRO class Aparelho')
+                MDApp.get_running_app().root.ids.manager.current = 'screenimage'
+            except:
+                print('ERRO class Aparelho')
+
+    def see_image(self,*args,**kwargs):
+
+        scroll_image = ImageParts()
+
+        pop = Popup(title='Selecionar image',size_hint=(None,None),size=('300dp','350dp'),
+                    background_color=(0,0,0,1),content=scroll_image)
+        pop.open()
 
     def snackbar(self, texto):
         snack = SnackBar(texto)
         snack.open()
 
-
+# class that receives thes class Box_View
 class ScreenView(Screen):
 
     lista = []
     get = []
     def __init__(self,*args,**kwargs):
         super(ScreenView,self).__init__(**kwargs)
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
 
     def content_user(self):
 
@@ -358,9 +487,13 @@ class ScreenView(Screen):
             with open('getNome.json','r', encoding='utf-8') as get_data:
                  self.data = json.load(get_data)
 
-            conn = sqlite3.connect('Eletronica.db')
+            conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM cliente WHERE CPF == "'+str(self.data["CPF"])+'" ')
+            try:
+                cursor.execute('SELECT * FROM cliente WHERE CPF == "'+str(self.data["CPF"])+'" ')
+            except KeyError:
+                cursor.execute('SELECT * FROM cliente WHERE ID == "' + str(self.data["ID"]) + '" ')
+
         except sqlite3.OperationalError as error_sqlite3:
             print('ERROR: linha 268 na class ScreenView Não existi o data base')
         except FileNotFoundError:
@@ -403,7 +536,7 @@ class ScreenView(Screen):
         dirct = {}
         get = ''
 
-        conn = sqlite3.connect('Eletronica.db')
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         conn.cursor()
         try:
             get = conn.execute('SELECT * FROM produtos '
@@ -441,9 +574,17 @@ class ScreenView(Screen):
         try:
             # Here return the button with device
             for item in self.get:
-                self.ids.scroll.add_widget(Box_View(content=str(item['Modelo']),
+
+                if item['Saida'] == None :
+                    item['Saida'] = ' '
+                else:
+                    item['Saida'] = f'[size=13]Data\nda entrega[/size] {item["Saida"]}'
+
+                self.ids.scroll.add_widget(Box_View(id_text=item['ID'],
+                                                    content=str(item['Modelo']),
                                                     sub=str(item['Marca']),
-                                                    imag=str(item['Modelo']).title()))
+                                                    imag=str(item['Modelo']).title(),
+                                                    delivery=str(item['Saida'])))
 
         except AttributeError:
             print('ERROR: linha 324 na class ScreenView a variavel get não recebel um data base!')
@@ -456,9 +597,6 @@ class ScreenView(Screen):
 
     def on_leave(self):
         self.get.clear()
-        # with open('getNome.json', 'w') as nome:
-        #     json.dump([],nome)
-        pass
 
     def popup_incerir_aparelho(self):
         screen = Aparelho()
@@ -477,6 +615,7 @@ class ButtonRegister(MDFillRoundFlatIconButton):
     def enter(self):
         MDApp.get_running_app().root.ids.manager.current = 'screenregister'
 
+
 class View_device(BoxLayout):
     def __init__(self,texto='',**kwargs):
         super().__init__(**kwargs)
@@ -485,12 +624,13 @@ class View_device(BoxLayout):
     def go_edit(self):
         MDApp.get_running_app().root.ids.manager.current = 'editdevice'
 
-
 class EditDevice(Screen):
 
     id_current = ''
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
 
     def dropdownmenu(self):
         marca = ['Sansung', 'CCE', 'LG', 'Panasonic', 'Tochiba', 'Sony', 'HP', 'Philco']  #########
@@ -520,19 +660,51 @@ class EditDevice(Screen):
             _id_nome = json.load(nome_id)
         return _id_nome
 
-    def data_base(self):
+    def garantia(self, cinal):
+        valor = 0
+        try:
+            valor = int(self.ids.mes_garantia.text)
+        except ValueError:
+            pass
 
-        #geting the name of device
-        nome_device = open('NameDevice.txt','r', encoding='utf-8')
-        device_nome = nome_device.read()
-        nome_device.close()
+        if cinal == '-':
+            valor -= 10
+            if valor < 0:
+                valor = 0
+        elif cinal == '+':
+            valor += 10
+        self.ids.mes_garantia.text = str(valor)
+        self.ids.dias.text = f'{str(valor)} Dias'
 
-        # geting the id of client
-        _id_cliente = self.name_id()
-
-        conn = sqlite3.connect('Eletronica.db')
+    def info_client(self):
+        id = self.name_id()
+        print(self.user_folder)
+        conn = sqlite3.connect(self.user_folder + 'Eletronica.db')
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM produtos WHERE ClienteID == "'+str(_id_cliente['ID'])+'" AND Modelo == "'+str(device_nome)+'"  ')
+        cursor.execute('SELECT * FROM cliente '
+                       'WHERE ID == "'+ str(id['ID']) +'" ')
+        info_client = cursor.fetchall()
+        self.ids.label_entry_device.text = f'Data entrada aparelho:\n {info_client[0][1]}'
+        self.ids.see_client_device.text = f'Cadastrado em {str(info_client[0][1])}\n\n' \
+                                            f'Nome: {str(info_client[0][2].title())}\n\n'\
+                                            f'CPF: {str(info_client[0][3])} \n\n' \
+                                            f'Bairro: {str(info_client[0][7])}\n\n'\
+                                            f'{str(info_client[0][4])}: {info_client[0][5]}      ' \
+                                            f'N°: {str(info_client[0][6])}\n\n' \
+                                            f'Tel: {str(info_client[0][8])}\n\n' \
+                                            f'Cel: {str(info_client[0][9])}\n\n' \
+                                            f'Email: {str(info_client[0][10])}'
+
+    def data_base(self):
+        self.info_client()
+
+        with open('getNome.json','r', encoding='utf-8') as id:
+            id_device = json.load(id)
+            id.close()
+
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM produtos WHERE ID == "'+str(id_device['Id_device'])+'" ')
         content = cursor.fetchall()
 
         # geting the id current of device
@@ -543,27 +715,44 @@ class EditDevice(Screen):
         self.ids.serial.text = str(content[0][8])
         self.ids.defeito.text = str(content[0][9])
         self.ids.valor_conserto.text = str(content[0][3])
+        self.ids.dias.text = f'{str(content[0][4])} Dias'
 
-        if str(content[0][10]) == 'Orçamento':
+        # Here is to if the text garantia is enpty he not receive None
+        if str(content[0][4]) == 'None':
+            self.ids.mes_garantia.text = ''
+        else:
+            self.ids.mes_garantia.text = str(content[0][4])
+
+        cituacao = str(content[0][10])
+        if cituacao == 'Orçamento':
             self.ids.cituacao.icon = 'hand-back-left'
-            self.ids.cituacao.text = str(content[0][10])
+            self.ids.cituacao.text = cituacao
             self.ids.orcamento.active = True
-        elif str(content[0][10]) == 'Arrumar':
+        elif cituacao == 'Arrumar':
             self.ids.cituacao.icon = 'account-check'
-            self.ids.cituacao.text = str(content[0][10])
+            self.ids.cituacao.text = cituacao
             self.ids.arrumar.active = True
-        elif str(content[0][10]) =='Devolver':
+        elif cituacao =='Devolver':
             self.ids.cituacao.icon = 'thumb-down'
-            self.ids.cituacao.text = str(content[0][10])
+            self.ids.cituacao.text = cituacao
             self.ids.devolcer.active = True
-        elif str(content[0][10]) == 'Entregue':
+        elif cituacao == 'Entregue':
             self.ids.cituacao.icon = 'handshake'
-            self.ids.cituacao.text = str(content[0][10])
-            self.ids.arrumado.active = True
-        elif str(content[0][10]) == 'Arrumado':
-            self.ids.cituacao.icon = 'check-underline-circle'
-            self.ids.cituacao.text = str(content[0][10])
+            self.ids.cituacao.text = cituacao
             self.ids.entregue.active = True
+        elif cituacao == 'Arrumado':
+            self.ids.cituacao.icon = 'check-underline-circle'
+            self.ids.cituacao.text = cituacao
+            self.ids.arrumado.active = True
+        conn.close()
+
+        if cituacao == 'Entregue':
+
+            input = f'[b]Data entrada:[/b] {content[0][1]}'
+            output = f'[b]Data saida:[/b] {content[0][2]}'
+            warranty = f'Garantia de {content[0][4]} dias!'
+            self.ids.box_garantia.add_widget(Rotulo_garantia(str(input), str(output), str(warranty)))
+
 
     def situacao(self,txt=None):
         if txt == 'Orçamento':
@@ -585,34 +774,58 @@ class EditDevice(Screen):
     def save_data(self):
 
         try:
-            coon = sqlite3.connect('Eletronica.db')
+            coon = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
             cursor = coon.cursor()
-            cursor.execute('UPDATE produtos SET Modelo = "'+str(self.ids.modelo.text)+'", Marca = "'+str(self.ids.id_marca.text)+'", Serial = "'+str(self.ids.serial.text)+'", Defeito = "'+str(self.ids.defeito.text)+'", ValorConserto = "'+str(self.ids.valor_conserto.text)+'", Situação = "'+str(self.ids.cituacao.text)+'" '
+            cursor.execute('UPDATE produtos SET Garantia = "'+ str(self.ids.mes_garantia.text) +'", Modelo = "'+str(self.ids.modelo.text)+'", Marca = "'+str(self.ids.id_marca.text)+'", Serial = "'+str(self.ids.serial.text)+'", Defeito = "'+str(self.ids.defeito.text)+'", ValorConserto = "'+str(self.ids.valor_conserto.text)+'", Situação = "'+str(self.ids.cituacao.text)+'" '
             'WHERE ID == "'+str(self.id_current)+'" ')
 
             coon.commit()
-            self.ids.text_warning.text = 'Alterações feita com sucesso!'
-            Clock.schedule_once(self.warning, 3)
+            toast('Alterações feita com sucesso!')
         except :
-            self.ids.text_warning.text = 'As alterações não foram salvas!'
-            Clock.schedule_once(self.warning, 5)
+            toast('As alterações não foram salvas!')
 
-    def warning(self,*args):
-        self.ids.text_warning.text = ''
+        if self.ids.entregue.active == True:
+            if self.ids.mes_garantia.text == '':
+                toast('Você esta fazendo a entrega do aparelho porem Não deu a garantia!\nE por isso a entrega não pode ser comcluida', duration=8)
+            else:
+                data = Date()
+                cursor.execute('UPDATE produtos SET Saida = "'+ str(data.date_current) +'" '
+                                'WHERE ID == "'+ str(self.id_current) +'" ')
+                toast('Entrega salva com cusseço!')
+                coon.commit()
+        coon.close()
 
     def on_pre_enter(self, *args):
         self.data_base()
+
+    def on_leave(self):
+        self.ids.box_garantia.clear_widgets()
 
 
 class Box_View(MDCard):
 
     map = {}
-    def __init__(self,content='',sub='',imag='',**kwargs):
+    def __init__(self,id_text='', content='',sub='',imag='', delivery='', **kwargs):
         super().__init__(**kwargs)
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
         # self.ids.bt_content.text = str(content)
+        self.id_text = str(id_text)
         self.text = str(content)
         self.sub_text = str(sub)
-        self.image = str('image/'+ imag + '.png')
+
+        self.delivery = str(delivery)
+
+        # see if has the image in folder and retunr a True or False
+        # veja se tem a imagem na pasta e retorne um True ou False
+        sis = os.path.exists('image/image_parts/'+ imag + '.png')
+
+        if sis == True:
+            self.image = str('image/image_parts/' + imag + '.png')
+        else:
+            self.image = str('image/image_parts/Outros.png')
+
 
     # Only to geting the id of client to find the device of client
     # Só para obter o id do cliente para encotrar o aparelho do cliente
@@ -627,19 +840,17 @@ class Box_View(MDCard):
         # geting id of client
         id_client = self.get_id_client()
 
-        conn = sqlite3.connect('Eletronica.db')
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM produtos WHERE ClienteID == "'+str(id_client)+'" AND Modelo == "' + str(txt.text) + '" ')
+        # cursor.execute('SELECT * FROM produtos WHERE ClienteID == "'+str(id_client)+'" AND ID == "' + str(txt.text) + '" ')
+        cursor.execute('SELECT * FROM produtos WHERE ID == "'+ str(self.id_text) +'" ')
         get_cursor = cursor.fetchall()
 
-        # print('teste', get_cursor)
         return get_cursor
-
 
     # Here is to open the content of popup
     def text_of_button(self,txt):
 
-        # print(self.image)
         obg_device = self.see_content_deviced(txt)
 
         screen_view = MDApp.get_running_app().root.ids.manager.get_screen('screenview')
@@ -647,7 +858,6 @@ class Box_View(MDCard):
         cobrança = obg_device[0][11]
         if str(cobrança) == 'None':
             cobrança = 'Não'
-
 
         # geting the content of one class
         view_deviced = View_device(texto=f'[size={"40dp"}][b][u]{obg_device[0][6]}[/u][/b][/size]\n\n '
@@ -675,14 +885,19 @@ class Box_View(MDCard):
         conteiner.add_widget(view_deviced)
         conteiner.add_widget(bt)
 
-        # always writing the name of device in file txt
-        # sempre escrevendo o nome do aparelho no arquivo txt
-        name_device = open('NameDevice.txt','w',encoding='utf-8')
-        name_device.write(str(obg_device[0][6]))
-        name_device.close()
 
-        # screen_view.ids.mdcard_view.add_widget(pop.open())
+        with open('getNome.json', 'r') as id:
+            id_device = json.load(id)
+            id_device['Id_device'] = obg_device[0][0]
+            id.close()
+
+
+        with open('getNome.json', 'w') as write_id:
+            json.dump(id_device, write_id, indent=2)
+
         screen_view.ids.mdcard_view = pop.open()
+
+    
 
 # class to add an MDTextField
 class Text(MDBoxLayout):
@@ -698,6 +913,9 @@ class NewUsedParts(Screen):
 class ButtonParts(MDCard):
     def __init__(self,namber='', id='', label='',amount='',**kwargs):
         super().__init__(**kwargs)
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
         self.namber = str(namber)
         self.get_id = id
         self.labels = label
@@ -706,8 +924,9 @@ class ButtonParts(MDCard):
     def view_parts(self):
         MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').add_widget(InsertDeviceParts(self.get_id,True))
 
-
     def popup(self,id,*args,**kwargs):
+
+        # MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').children[0]
 
         self.id_root = id
 
@@ -733,15 +952,17 @@ class ButtonParts(MDCard):
     def delet_parts(self,*args):
 
         try:
-            conn = sqlite3.connect('Eletronica.db')
+            conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
             cursor = conn.cursor()
             cursor.execute('DELETE FROM StockPartsDevices '
                            'WHERE ID == "'+self.id_root+'"; ')
             conn.commit()
             conn.close()
             toast(f'Dados deletado com sucesso')
+            self.parent.remove_widget(self)
         except:
             toast('Erro! ao deletar os dados')
+
 
 class OpenPartsDevices(MDBoxLayout):
 
@@ -755,12 +976,23 @@ class OpenPartsDevices(MDBoxLayout):
         :param kwargs: An text to be isert on class ButtonStock
         """
         super().__init__(**kwargs)
-        self.ids.info.text = str(info) + '\n\nPrateleira\n' + f'[color=#eb3434]{str(prateleira)}[/color]'
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
 
         self.text_id = str(text_id)
         self.texto = str(texto)
         self.sub_text = str(sub)
         self.prateleira = str(prateleira)
+
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM estoque '
+                       'WHERE ID == "'+self.text_id +'" ')
+        content = cursor.fetchall()
+        conn.close()
+
+        self.ids.info.text = '[b]Avarias:[/b]  ' + str(info) + '\n\n[b]Model[/b]:  '+ str(content[0][2]) + '\n\nPrateleira\n' + f'[color=#eb3434]{str(prateleira)}[/color]'
+
 
         self.creat_txt()
         self.insert_button()
@@ -770,14 +1002,14 @@ class OpenPartsDevices(MDBoxLayout):
         id = file_id.read()
         file_id.close()
 
-        conn = sqlite3.connect('Eletronica.db')
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM StockPartsDevices '
                        'WHERE ID_Device = "'+str(id)+'" ')
 
         for n, part in enumerate(cursor.fetchall()):
             self.ids.scroll_parts.add_widget(BoxLayout(size_hint_y=None,height=('7dp')))
-            self.ids.scroll_parts.add_widget(ButtonParts(namber=str(n+1), id=str(part[0]),label=part[2], amount='Quant/'+str(part[7])))
+            self.ids.scroll_parts.add_widget(ButtonParts(namber=str(n+1)+'  [size=40]|[/size]', id=str(part[0]),label=part[2], amount='Quant/'+str(part[7])))
 
 
     def creat_txt(self):
@@ -798,6 +1030,8 @@ class ButtonStock(BoxLayout):
     def __init__(self,number='', text_id='',texto='',sub='',prateleira='', **kwargs):
         super().__init__(**kwargs)
 
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
         self.number = str(number)
         self.text_id = str(text_id)
         self.rotulo = str(texto)
@@ -807,7 +1041,7 @@ class ButtonStock(BoxLayout):
 # Here open an box to show thes select devices
     def open_devices(self, id):
 
-        conn = sqlite3.connect('Eletronica.db')
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM estoque '
                        'WHERE ID = "'+id+'";')
@@ -816,10 +1050,68 @@ class ButtonStock(BoxLayout):
         MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').add_widget(OpenPartsDevices(
             content[0][0], content[0][1]+' - '+content[0][3], content[0][4], str(content[0][5]) + '/' + str(content[0][6]), str(content[0][4])))
 
+    def edit(self, id):
+
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM estoque '
+                       'WHERE ID == "'+ str(id) +'" ')
+        content = cursor.fetchall()
+
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.label.text = '[color=#FF0000]Editar aparelho[/color]\n'
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.aparelho.text = str(content[0][1])
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.marca.text = str(content[0][3])
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.modelo.text = str(content[0][2])
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.avarias.text = str(content[0][4])
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.prateleira.text = str(content[0][5])
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.espaco.text = str(content[0][6])
+        MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.button_save.text = 'Edit'
+
+    def popup_delet_self(self,roots, *args,**kwargs):
+        self.roots = roots
+
+        box = BoxLayout(orientation='vertical',padding='10dp',spacing='10dp')
+
+        box_bt = BoxLayout(spacing='10dp')
+        image = Image(source='image/atencao.png')
+
+        self.pop = Popup(title=f'Deseja excluir esse aparelho  " {self.rotulo} "?',size_hint=(None,None),size=('300dp','200dp'), content=box)
+
+        bt_sim = Button(text='Sim',on_release=self.delet_self)
+        bt_nao = Button(text='Não', on_release=self.pop.dismiss)
+        box_bt.add_widget(bt_sim)
+        box_bt.add_widget(bt_nao)
+
+        box.add_widget(image)
+        box.add_widget(box_bt)
+        self.pop.open()
+
+    def delet_self(self,*args):
+
+        # MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').children[0].clear_widgets()
+
+        try:
+            conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM estoque '
+                           'WHERE ID == "'+ str(self.text_id)+'" ')
+
+            cursor.execute('DELETE FROM StockPartsDevices '
+                           'WHERE ID_Device == "'+ str(self.text_id) +'" ')
+            conn.commit()
+            conn.close()
+            MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').ids.show_parts.remove_widget(self.roots)
+            toast('Dados excluidos com sucesso!')
+            self.pop.dismiss()
+        except:
+            toast('Erro! ao excluir os dados!')
+
 
 class ScreenEstoque(Screen):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
 
     def closed(self,roots):
         self.remove_widget(roots)
@@ -828,7 +1120,7 @@ class ScreenEstoque(Screen):
         self.show_device()
 
     def show_device(self, *args):
-        conn = sqlite3.connect('Eletronica.db')
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         cursor = conn.cursor()
         data = cursor.execute('SELECT * FROM estoque')
 
@@ -844,7 +1136,7 @@ class ScreenEstoque(Screen):
         marca = str(self.ids.pesq_marca.text).title()
         modelo = str(self.ids.pesq_modelo.text).title()
 
-        conn = sqlite3.connect('Eletronica.db')
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM estoque '
                        'WHERE Aparelho LIKE "'+aparelho+'%" AND Marca LIKE "'+marca+'%" AND Modelo LIKE "'+modelo+'%" ')
@@ -857,57 +1149,102 @@ class ScreenEstoque(Screen):
         if aparelho == '' and marca == '' and modelo == '':
             self.show_device()
 
-    def save_deviced(self,*args):
-        aparelho = str(self.ids.aparelho.text)
-        marca = str(self.ids.marca.text)
-        modelo = str(self.ids.modelo.text)
-        avarias = str(self.ids.avarias.text)
-        prateleira = str(self.ids.prateleira.text)
-        espaco = str(self.ids.espaco.text)
+    def valid_stock(self):
 
-        # situacao = 'Usado'
-        # valor = '50.0'
-        try:
-            conn = sqlite3.connect('Eletronica.db')
-            cursor = conn.cursor()
-            cursor.execute('INSERT INTO estoque(Aparelho, Modelo, Marca, Avarias, Prateleira, EspacoPrateleira)'
-                           'VALUES("'+ aparelho +'","'+ modelo +'","'+ marca +'","'+ avarias +'","'+ prateleira +'","'+ espaco +'")')
+        valid = True
+
+        self.aparelho = str(self.ids.aparelho.text)
+        self.marca = str(self.ids.marca.text)
+        self.modelo = str(self.ids.modelo.text)
+        self.avarias = str(self.ids.avarias.text)
+        self.prateleira = str(self.ids.prateleira.text)
+        self.espaco = str(self.ids.espaco.text)
+
+        if self.aparelho == '':
+            toast('Campo aparelho vasio secione ou digite um aparelho!', duration=5)
+            valid = False
+
+        return valid
+
+    def save_deviced(self, msg, *args):
+        self.valid_stock()
+
+        # opening the file txt to get the id
+        file_id = open('get_id.txt')
+        id = file_id.read()
+        file_id.close
+
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+        cursor = conn.cursor()
+
+        if msg == 'Edit':
+            cursor.execute('UPDATE estoque  '
+                           'SET Aparelho = "'+ self.aparelho +'", Modelo = "'+ self.modelo +'", Marca = "'+self.marca+'", Avarias = "'+self.avarias+'", Prateleira = "'+self.prateleira +'", EspacoPrateleira = "'+ self.espaco+'" '
+                           'WHERE ID == "'+ id +'" ')
             conn.commit()
+            self.return_field()
+            toast('Dados alterados com sucesso!')
 
-            self.ids.aparelho.text = ''
-            self.ids.marca.text = ''
-            self.ids.modelo.text = ''
-            self.ids.avarias.text = ''
-            self.ids.prateleira.text = ''
-            self.ids.espaco.text = ''
+        elif msg == 'Save':
 
-            self.show_device()
-            toast('Os dados foram salvos com sucesso!')
-        except:
-            toast('ERRO! Os dados não foram salvos!!!')
+            # situacao = 'Usado'
+            # valor = '50.0'
+            if self.valid_stock():
+
+                try:
+                    cursor.execute('INSERT INTO estoque(Aparelho, Modelo, Marca, Avarias, Prateleira, EspacoPrateleira)'
+                                   'VALUES("'+ self.aparelho +'","'+ self.modelo +'","'+ self.marca +'","'+ self.avarias +'","'+ self.prateleira +'","'+ self.espaco +'")')
+                    conn.commit()
+
+                    self.ids.aparelho.text = ''
+                    self.ids.marca.text = ''
+                    self.ids.modelo.text = ''
+                    self.ids.avarias.text = ''
+                    self.ids.prateleira.text = ''
+                    self.ids.espaco.text = ''
+
+                    self.show_device()
+                    toast('Os dados foram salvos com sucesso!')
+                except:
+                    toast('ERRO! Os dados não foram salvos!!!')
+            else:
+                pass
+        conn.close()
+    def return_field(self):
+        self.ids.label.text = 'Inserir aparelho\n'
+        self.ids.aparelho.text = ''
+        self.ids.marca.text = ''
+        self.ids.modelo.text = ''
+        self.ids.avarias.text = ''
+        self.ids.prateleira.text = ''
+        self.ids.espaco.text = ''
+        self.ids.button_save.text = 'Save'
 
     def add_parts(self, *args):
         self.add_widget(InsertDeviceParts())
+
 
 class InsertDeviceParts(Scatter):
     quant = 0
     pos_erro = 0
     pos_cont = 0
     valid_content= []
-
     def __init__(self,get_id='',edit=False, **kwargs):
         super().__init__(**kwargs)
+
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
         self.get_id = get_id
         self.edit = edit
 
         # Here is to open the insertDeviceParts with thes field amount
         # Aqui é para abrir o insertDeviceParts com o valor do campo
-        if edit:
+        if self.edit:
             self.editing()
 
     def editing(self):
         try:
-            conn = sqlite3.connect('Eletronica.db')
+            conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM StockPartsDevices '
                            'WHERE ID == "'+ str(self.get_id) +'" ')
@@ -924,12 +1261,13 @@ class InsertDeviceParts(Scatter):
             self.ids.controller_serial.text = str(content[0][4])
             self.ids.controller_serial.readonly = True
             self.ids.controller_valor.text = str(content[0][5])
-            self.ids.controller_soma.text = f'{soma:.2f}'
+            self.ids.controller_soma.text = f'{soma:,.2f}'
             self.ids.controller_cont.text = str(content[0][7])
 
             self.valid_content.append(content[0])
         except:
             pass
+        conn.close()
 
     def fechar(self, msg,*args):
         MDApp.get_running_app().root.ids.manager.get_screen('screenestoque').remove_widget(self)
@@ -941,9 +1279,13 @@ class InsertDeviceParts(Scatter):
         :param bool: Receive True or False to valid the sinal + or _
         :return:
         """
+
         try:
             controller_cont = self.ids.controller_cont.text
             self.ids.controller_cont.text = ''
+            if controller_cont == '':
+                controller_cont = '0'
+
             self.quant = int(controller_cont)
 
             if bool: # if the button +  is pressing ========<
@@ -982,18 +1324,51 @@ class InsertDeviceParts(Scatter):
         except:
             pass
 
+    def on_pecas(self,*args):
+        if int(self.ids.controller_cont.text) >= 1:
+            pass
+        else:
+            self.ids.controller_cont.text = '1'
+
+        if self.ids.controller_pecas.text == '':
+            self.ids.controller_cont.text = '0'
+
+    def on_valor_unit(self,*args):
+
+        valor_unit = self.ids.controller_valor.text
+        cont = self.ids.controller_cont.text
+
+        #  Text_valor here is to  valid the field of entry of number
+        # aqui é para validar o campo de entrada do número
+        if valor_unit.isnumeric():
+            self.pos_erro = len(valor_unit)
+        elif '.' in valor_unit:
+        # this "try" is to see if the field does sum
+        # esta "try" é para ver se o campo soma
+            try:
+                s = float(valor_unit) + 1
+                self.pos_erro = len(valor_unit)
+            except ValueError:
+                self.ids.controller_valor.text = str(valor_unit[0:self.pos_erro])
+                print('Error in field valor unic')
+        elif valor_unit == '':
+            self.pos_erro = 0
+        else:
+            if self.pos_erro > 0:
+                self.ids.controller_valor.text = str(valor_unit[0:self.pos_erro])
+            else:
+                self.ids.controller_valor.text = ''
+
+        try:
+            soma = float(valor_unit) * int(cont)
+        except ValueError:
+            soma = 0.0
+
+        self.ids.controller_soma.text = str(soma)
+
     def on_texto(self,*args,**kwargs):
 
         try:
-            # self.valid()
-
-            # if self.ids.controller_cont.text == '' or self.ids.controller_cont.text == 0:
-            #     self.ids.controller_cont.text = '1'
-            #     self.cont = 1
-            # else:
-            #     self.cont = int(self.ids.controller_cont.text)
-
-
             # here is only to valid the field text
             # aqui é apenas para validar o texto do campo
             text_valor = self.ids.controller_valor.text
@@ -1004,8 +1379,8 @@ class InsertDeviceParts(Scatter):
             if text_valor.isnumeric():
                 self.pos_erro = len(text_valor)
             elif '.' in text_valor:
-                # this "try" is to see if the field does sum
-                # esta "try" é para ver se o campo soma
+            # this "try" is to see if the field does sum
+            # esta "try" é para ver se o campo soma
                 try:
                     s = float(text_valor) + 1
                     self.pos_erro = len(text_valor)
@@ -1030,63 +1405,69 @@ class InsertDeviceParts(Scatter):
                     self.ids.controller_cont.text = str(text_cont[0:self.pos_cont])
                 else:
                     self.ids.controller_cont.text = '0'
-
-
-            # try:
-            #     soma = float(self.valor_unit) * int(self.cont)
-            # except ValueError:
-            #     soma = 0.0
-            #
-            # self.ids.controller_soma.text = str(soma)
         except:
             pass
 
     def save_data_deviced(self):
-        self.valid()
+
+        parts = self.ids.controller_pecas.text
+        model = self.ids.controller_modelo.text
+        serial = self.ids.controller_serial.text
+
+        valor_unit = self.ids.controller_valor.text
+        cont = self.ids.controller_cont.text
+
 
         try:
             # Here change the seting of box insertPartsDevices
             if self.edit:
                 try:
-                    if float(self.valor_unit) != float(self.valid_content[0][5]) and int(self.cont) != int(self.valid_content[0][7]):
-                        self.popup_save(f'Campos alterados:\nValor:  {self.valid_content[0][5]}  =>  {self.valor_unit}\n'
-                                    f'Quantidade:  {self.valid_content[0][7]}  =>  {self.cont}')
-                    elif float(self.valor_unit) != float(self.valid_content[0][5]):
-                        self.popup_save(f'Campo alterado:\nValor  {self.valid_content[0][5]}  =>  {self.valor_unit}')
-                    elif int(self.cont) != int(self.valid_content[0][7]):
-                        self.popup_save(f'Campo alterado:\nQuantidade alterada:  {self.valid_content[0][7]}  =>  {self.cont}')
+                    if float(valor_unit) != float(self.valid_content[0][5]) and int(cont) != int(self.valid_content[0][7]):
+                        self.popup_save(f'Campos alterados:\nValor:  {self.valid_content[0][5]}  =>  {valor_unit}\n'
+                                        f'Quantidade:  {self.valid_content[0][7]}  =>  {cont}')
+                    elif float(valor_unit) != float(self.valid_content[0][5]):
+                        self.popup_save(f'Campo alterado:\nValor  {self.valid_content[0][5]}  =>  {valor_unit}')
+                    elif int(cont) != int(self.valid_content[0][7]):
+                        self.popup_save(f'Campo alterado:\nQuantidade alterada:  {self.valid_content[0][7]}  =>  {cont}')
                     else:
-                        pass
+                        toast('Nenhun dados alterados para ser salvo!')
 
                 except ValueError:
-                    self.valor_unit = 0
-                    if float(self.valor_unit) != float(self.valid_content[0][5]):
-                        self.popup_save(f'Campo alterado {self.valid_content[0][5]} => {self.valor_unit}')
-                    elif int(self.cont) != int(self.valid_content[0][7]):
-                        self.popup_save(f'Campo alterado:\nQuantidade alterada:{self.valid_content[0][7]} => {self.cont}')
+                    valor_unit = 0
+                    if float(valor_unit) != float(self.valid_content[0][5]):
+                        self.popup_save(f'Campo alterado {self.valid_content[0][5]} => {valor_unit}')
+                    elif int(cont) != int(self.valid_content[0][7]):
+                        self.popup_save(f'Campo alterado:\nQuantidade alterada:{self.valid_content[0][7]} => {cont}')
             else:
-                file_id = open('get_id.txt','r')
-                id = file_id.read()
-                file_id.close()
 
-                conn = sqlite3.connect('Eletronica.db')
-                cursor = conn.cursor()
-                cursor.execute('INSERT INTO StockPartsDevices(ID_Device, Peca, Modelo, Serial, ValorUnit, Quantidade)'
-                               'VALUES("'+ str(id) +'", "'+ str(self.parts) +'", "'+ str(self.model) +'", "'+ str(self.serial) +'", "'+ str(self.valor_unit) +'", "'+ str(self.cont) +'" )')
-                conn.commit()
-                conn.close()
-            self.fechar(self)
-            toast('Dados salvos com sucesso!')
+                if parts == '':
+                    toast('Insira pelo menos o nome da peça!')
+                else:
+                    self.ids.controller_cont.text = '1'
+                    file_id = open('get_id.txt','r')
+                    id = file_id.read()
+                    file_id.close()
+
+                    conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+                    cursor = conn.cursor()
+                    cursor.execute('INSERT INTO StockPartsDevices(ID_Device, Peca, Modelo, Serial, ValorUnit, Quantidade)'
+                                   'VALUES("'+ str(id) +'", "'+ str(parts).title() +'", "'+ str(model) +'", "'+ str(serial) +'", "'+ str(valor_unit) +'", "'+ str(cont) +'" )')
+                    conn.commit()
+                    conn.close()
+                    self.fechar(self)
+                    toast('Dados salvos com sucesso!')
         except:
             toast('Erro! Ao salvar dados')
 
     def update(self,*args,**kwargs):
-        self.valid()
+
+        valor_unit = self.ids.controller_valor.text
+        cont = self.ids.controller_cont.text
         try:
-            conn = sqlite3.connect('Eletronica.db')
+            conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
             cursor = conn.cursor()
             cursor.execute('UPDATE StockPartsDevices '
-                           'SET ValorUnit = "'+str(self.valor_unit)+'", Quantidade = "'+ str(self.cont) +'" '
+                           'SET ValorUnit = "'+str(valor_unit)+'", Quantidade = "'+ str(cont) +'" '
                            'WHERE ID == "'+ str(self.get_id) +'" ')
             conn.commit()
             conn.close()
@@ -1115,6 +1496,53 @@ class InsertDeviceParts(Scatter):
         box.add_widget(box_button)
 
         popup.open()
+
+
+class Rotulo_garantia(MDCard):
+    def __init__(self, input='', output='', warranty='', **kwargs):
+        super().__init__(**kwargs)
+        self.input = str(input)
+        self.output = str(output)
+        self.warranty   = str(warranty)
+
+
+class ScreenPartsNew(Screen):
+    pass
+
+
+class SmartTile(SmartTileWithStar):
+    def __init__(self,img='', img_text='',**kwargs):
+        """
+        Class to insert the image in class ImageParts
+        :param img: receive the path of image
+        :param img_text: receive only the name of image
+        :param kwargs:
+        """
+        super().__init__(**kwargs)
+        self.image= str(img)
+        self.img_text = str(img_text)
+
+    def insert_name_image(self,*args,**kwargs):            # 795
+        file = open('NameDevice.txt','w')
+        file.write(str(self.img_text))
+        self.parent.parent.parent.parent.parent.parent.dismiss()
+        toast('Aperte qualquer tecla no campo modelo para preencher o campo modelo da image selecionado', duration=5)
+
+
+class ImageParts(MDBoxLayout):
+    def __init__(self, **kwargs):
+        """
+        Class to show the type of image
+        :param kwargs:
+        """
+        super().__init__(**kwargs)
+        self.folder_image()
+    def folder_image(self,*args, **kwargs):
+        path = 'image/image_parts/'
+        source = os.listdir(path)
+
+        for img in source:
+            self.ids.box_image.add_widget(SmartTile(img=str(path) + str(img), img_text=str(img)))
 
 
 class EletronicaApp(MDApp):
