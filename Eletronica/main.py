@@ -53,7 +53,85 @@ class Manager(BoxLayout):
     pass
 
 class ScreenImage(Screen):
-    pass
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
+    def on_pre_enter(self):
+        self.criaBd()
+        self.creat_file_txt()
+
+    def criaBd(self):
+        conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
+        conn.cursor()
+        conn.execute('CREATE TABLE IF NOT EXISTS cliente(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ' 
+                     'Cadastro TEXT NOT NULL,'
+                     'Nome TEXT NOT NULL,'
+                     'CPF TEXT UNIQUE,'
+                     'Logradouro Text,'
+                     'Endereço TEXT NOT NULL,'
+                     'Numero Text,'
+                     'Bairro TEXT,'                     
+                     'Telefone TEXT,'
+                     'Celular TEXT,'
+                     'Emeil TEXT);')
+
+
+        conn.execute('CREATE TABLE IF NOT EXISTS produtos(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,'
+                     'Entrada TEXT ,'
+                     'Saida TEXT, '
+                     'ValorConserto REAL,'
+                     'Garantia TEXT,'
+                     'ClienteID INTEGER NOT NULL,'
+                     'Modelo TEXT ,'
+                     'Marca TEXT,'
+                     'Serial TEXT,'
+                     'Defeito TEXT,'
+                     'Situação,'
+                     'Pago TEXT'
+                     ' );')
+
+        conn.execute('CREATE TABLE IF NOT EXISTS estoque(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+                     'Aparelho TEXT, '                     
+                     'Modelo Text,'
+                     'Marca Text,'
+                     'Avarias TEXT,'
+                     'Prateleira INTEGER,'
+                     'EspacoPrateleira TEXT,'
+                     'Valor TEXT);')
+
+        conn.execute('CREATE TABLE IF NOT EXISTS StockPartsDevices(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,'
+                    'ID_Device INTEGER NOT NULL,'
+                    'Peca TEXT NOT NULL,'
+                    'Modelo TEXT,'
+                    'Serial TEXT,'
+                    'ValorUnit REAL,'
+                    'ValorSoma REAL,'
+                    'Quantidade INTEGER);')
+
+        conn.execute('CREATE TABLE IF NOT EXISTS estoque_novos(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,'
+                     'Peças TEXT NOT NULL,'
+                     'QTD INTEGER,'
+                     'Modelo TEXT,'
+                     'Valor_venda,'
+                     'Valor_compra);')
+
+        # conn.execute('CREATE TABLE IF NOT EXISTS prateleira(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+        #              'PrateleirNum TEXT);')
+
+        # conn.execute('CREATE TABLE IF NOT EXISTS EspacoPrateleira (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+        #              'IDPrateleira INTEGER NOT NULL,'
+        #              'Espaco TEXT)')
+
+        conn.commit()
+
+    def creat_file_txt(self):
+        try:
+            file = open('lista_aparelho.txt','r')
+            file.close()
+        except FileNotFoundError:
+            file = open('lista_aparelho.txt','w')
+            file.close()
 
 class BtClientLogin(MDBoxLayout):
     map = {}
@@ -237,8 +315,35 @@ class ScreenRegister(Screen,Date):
         super(ScreenRegister,self).__init__(**kwargs)
 
         self.user_folder = MDApp.get_running_app().user_data_dir + '/'
-
         self.date = self.date_current
+
+
+    def focus_logradouro(self, *args, **kwargs):
+        LISTA_LOGRADOURO = ['Avenida','Condominio','Conjunto','Favela','Rodovia','Rua','Viela','Vila']
+
+        lista = [
+        {
+            "viewclass": "IconListItem",
+            "icons": "road-variant",
+            "text": str(i),
+            "height": dp(56),
+            # "callback": self.insert_logradouro,
+            "on_release":(lambda x=i: self.insert_logradouro(x)),
+        }for i in LISTA_LOGRADOURO]
+
+        self.dropdown = MDDropdownMenu(
+            # background_color=(1, 1, 1, 1),
+            caller=self.ids.cadastro_logradouro,
+            items= lista,
+            position='bottom',
+            width_mult=4
+        )
+        # self.dropdown.background_color = (1,1,1,1)
+        self.dropdown.open()
+
+    def insert_logradouro(self, msg=''):
+        self.ids.cadastro_logradouro.text = str(msg)
+        self.dropdown.dismiss()
 
     def on_pre_enter(self):
         self.criaBd()
@@ -287,14 +392,14 @@ class ScreenRegister(Screen,Date):
     def criaBd(self):
         conn = sqlite3.connect(str(self.user_folder) + 'Eletronica.db')
         conn.cursor()
-        conn.execute('CREATE TABLE IF NOT EXISTS cliente(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ' 
+        conn.execute('CREATE TABLE IF NOT EXISTS cliente(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
                      'Cadastro TEXT NOT NULL,'
                      'Nome TEXT NOT NULL,'
                      'CPF TEXT UNIQUE,'
                      'Logradouro Text,'
                      'Endereço TEXT NOT NULL,'
                      'Numero Text,'
-                     'Bairro TEXT,'                     
+                     'Bairro TEXT,'
                      'Telefone TEXT,'
                      'Celular TEXT,'
                      'Emeil TEXT);')
@@ -315,7 +420,7 @@ class ScreenRegister(Screen,Date):
                      ' );')
 
         conn.execute('CREATE TABLE IF NOT EXISTS estoque(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
-                     'Aparelho TEXT, '                     
+                     'Aparelho TEXT, '
                      'Modelo Text,'
                      'Marca Text,'
                      'Avarias TEXT,'
@@ -324,21 +429,21 @@ class ScreenRegister(Screen,Date):
                      'Valor TEXT);')
 
         conn.execute('CREATE TABLE IF NOT EXISTS StockPartsDevices(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,'
-                    'ID_Device INTEGER NOT NULL,'
-                    'Peca TEXT NOT NULL,'
-                    'Modelo TEXT,'
-                    'Serial TEXT,'
-                    'ValorUnit REAL,'
-                    'ValorSoma REAL,'
-                    'Quantidade INTEGER);')
+                     'ID_Device INTEGER NOT NULL,'
+                     'Peca TEXT NOT NULL,'
+                     'Modelo TEXT,'
+                     'Serial TEXT,'
+                     'ValorUnit REAL,'
+                     'ValorSoma REAL,'
+                     'Quantidade INTEGER);')
 
 
-        conn.execute('CREATE TABLE IF NOT EXISTS prateleira(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
-                     'PrateleirNum TEXT);')
+        # conn.execute('CREATE TABLE IF NOT EXISTS prateleira(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+        #              'PrateleirNum TEXT);')
 
-        conn.execute('CREATE TABLE IF NOT EXISTS EspacoPrateleira (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
-                     'IDPrateleira INTEGER NOT NULL,'
-                     'Espaco TEXT)')
+        # conn.execute('CREATE TABLE IF NOT EXISTS EspacoPrateleira (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+        #              'IDPrateleira INTEGER NOT NULL,'
+        #              'Espaco TEXT)')
 
         conn.commit()
 
@@ -349,7 +454,9 @@ class IconListItem(OneLineIconListItem):
 # This class does parts of class "screeView"
 # Essa class faz part da class "screeView"
 class Aparelho(BoxLayout,Date): # content of a popup
-
+    BRAND_NOTEBOOK = ['Acer', 'Apple', 'Asus', 'Dell', 'HP', 'Lenovo', 'Positivo']
+    BRAND_LIQUID = ['Arno', 'Mondial']
+    marca = []
     def __init__(self, *args,**kwargs):
         super().__init__(**kwargs)
 
@@ -366,7 +473,11 @@ class Aparelho(BoxLayout,Date): # content of a popup
         self.msg_device = ''
 
     # conteudo do on_focus do TextField
-        marca = ['Sansung','CCE','LG','Panasonic','Tochiba','Sony','HP','Philco']        #########
+        self.marca = ['AOC', 'Brastemp', 'Britania', 'CCE', 'Consul', 'Electrolux', 'Gradiente', 'JBL', 'LG', 'Oster',
+                      'Panasonic', 'Philco', 'Philips', 'Pioneer', 'Sansung', 'Semp',
+                      'Sony', 'TCL', 'Tochiba']        #########
+        self.marca += self.BRAND_LIQUID
+        self.marca += self.BRAND_LIQUID
         self.lista = [
             {
                 "viewclass": "IconListItem",
@@ -375,7 +486,7 @@ class Aparelho(BoxLayout,Date): # content of a popup
                 "height":dp(56),
                 "callback": self.inserir,
                 "on_release": (lambda x=i: self.inserir(x)),
-            } for i in marca]
+            } for i in self.marca]
 
         self.menu_widget = MDDropdownMenu(
             caller=self.ids.id_marca,
@@ -383,6 +494,10 @@ class Aparelho(BoxLayout,Date): # content of a popup
             position='bottom',
             width_mult=4
         )
+
+    def inserir(self,x=''):        ##########
+        self.ids.id_marca.text = str(x).title()
+        self.menu_widget.dismiss()
 
     def file_image(self):
         file = open('NameDevice.txt','r')
@@ -398,10 +513,6 @@ class Aparelho(BoxLayout,Date): # content of a popup
             clear_file = open('NameDevice.txt','w')
             clear_file.write('')
             clear_file.close()
-
-    def inserir(self,x=''):        ##########
-        self.ids.id_marca.text = str(x)
-        self.menu_widget.dismiss()
 
     def situacao(self,txt):
         if txt == 'Orçamento':
@@ -531,7 +642,6 @@ class ScreenView(Screen):
         except IndexError:
             print('ERROR: linha 294 na class "ScreenView" Lista vasia não tem um data base')
 
-
     def content_device(self):
         dirct = {}
         get = ''
@@ -589,6 +699,18 @@ class ScreenView(Screen):
         except AttributeError:
             print('ERROR: linha 324 na class ScreenView a variavel get não recebel um data base!')
 
+    def eraser(self):
+        with open('getNome.json') as loadName:
+            load_inf = json.load(loadName)
+        load_inf['ID'] = ''
+        load_inf['Nome'] = ''
+        load_inf['Id_device'] = ''
+
+        with open('getNome.json','w') as eraser_name:
+            json.dump(load_inf, eraser_name, indent=2)
+            eraser_name.close()
+            toast('Concluido!')
+
     def on_pre_enter(self):
 
         self.content_user()
@@ -620,12 +742,18 @@ class View_device(BoxLayout):
     def __init__(self,texto='',**kwargs):
         super().__init__(**kwargs)
         self.ids.content_device.text = str(texto)
-
+                                                                    #463
     def go_edit(self):
         MDApp.get_running_app().root.ids.manager.current = 'editdevice'
 
-class EditDevice(Screen):
+        # Here is te go until arrive in popup
+        # aqui vai até chegar em popup
+        self.parent.parent.parent.parent.dismiss()
 
+class EditDevice(Screen):
+    BRAND_NOTEBOOK = ['Acer', 'Apple', 'Asus', 'Dell', 'HP', 'Lenovo', 'Positivo']
+    BRAND_LIQUID = ['Arno', 'Mondial']
+    marca = []
     id_current = ''
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
@@ -633,7 +761,11 @@ class EditDevice(Screen):
         self.user_folder = MDApp.get_running_app().user_data_dir + '/'
 
     def dropdownmenu(self):
-        marca = ['Sansung', 'CCE', 'LG', 'Panasonic', 'Tochiba', 'Sony', 'HP', 'Philco']  #########
+        self.marca = ['AOC', 'Brastemp', 'Britania', 'CCE', 'Consul', 'Electrolux', 'Gradiente', 'JBL', 'LG', 'Oster',
+                      'Panasonic', 'Philco', 'Philips', 'Pioneer', 'Sansung', 'Semp',
+                      'Sony', 'TCL', 'Tochiba']
+        self.marca += self.BRAND_LIQUID
+        self.marca += self.BRAND_LIQUID
         self.lista = [
             {
                 "viewclass": "IconListItem",
@@ -642,7 +774,7 @@ class EditDevice(Screen):
                 "height": dp(56),
                 "callback": self.inserir,
                 "on_release": (lambda x=i: self.inserir(x)),
-            } for i in marca]
+            } for i in self.marca]
 
         self.menu_widget = MDDropdownMenu(
             caller=self.ids.id_marca,
@@ -678,13 +810,11 @@ class EditDevice(Screen):
 
     def info_client(self):
         id = self.name_id()
-        print(self.user_folder)
         conn = sqlite3.connect(self.user_folder + 'Eletronica.db')
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM cliente '
                        'WHERE ID == "'+ str(id['ID']) +'" ')
         info_client = cursor.fetchall()
-        self.ids.label_entry_device.text = f'Data entrada aparelho:\n {info_client[0][1]}'
         self.ids.see_client_device.text = f'Cadastrado em {str(info_client[0][1])}\n\n' \
                                             f'Nome: {str(info_client[0][2].title())}\n\n'\
                                             f'CPF: {str(info_client[0][3])} \n\n' \
@@ -709,8 +839,9 @@ class EditDevice(Screen):
 
         # geting the id current of device
         self.id_current = str(content[0][0])
+        self.ids.label_entry_device.text = f'Data entrada aparelho:\n {content[0][1]}'
 
-        self.ids.modelo.text = str(content[0][6])
+        self.ids.modelo.text = str(content[0][6]).title()
         self.ids.id_marca.text = str(content[0][7])
         self.ids.serial.text = str(content[0][8])
         self.ids.defeito.text = str(content[0][9])
@@ -750,7 +881,7 @@ class EditDevice(Screen):
 
             input = f'[b]Data entrada:[/b] {content[0][1]}'
             output = f'[b]Data saida:[/b] {content[0][2]}'
-            warranty = f'Garantia de {content[0][4]} dias!'
+            warranty = f'{content[0][4]} dias!'
             self.ids.box_garantia.add_widget(Rotulo_garantia(str(input), str(output), str(warranty)))
 
 
@@ -812,7 +943,7 @@ class Box_View(MDCard):
 
         # self.ids.bt_content.text = str(content)
         self.id_text = str(id_text)
-        self.text = str(content)
+        self.text = str(content).title()
         self.sub_text = str(sub)
 
         self.delivery = str(delivery)
@@ -860,7 +991,7 @@ class Box_View(MDCard):
             cobrança = 'Não'
 
         # geting the content of one class
-        view_deviced = View_device(texto=f'[size={"40dp"}][b][u]{obg_device[0][6]}[/u][/b][/size]\n\n '
+        view_deviced = View_device(texto=f'[size={"40dp"}][b][u]{obg_device[0][6].title()}[/u][/b][/size]\n\n '
                                          f'Marca: {obg_device[0][7]}\n\n'
                                          f'Valor: {obg_device[0][3]}\n\n'
                                          f'Garantia\n\n'
@@ -897,7 +1028,6 @@ class Box_View(MDCard):
 
         screen_view.ids.mdcard_view = pop.open()
 
-    
 
 # class to add an MDTextField
 class Text(MDBoxLayout):
@@ -1108,10 +1238,61 @@ class ButtonStock(BoxLayout):
 
 
 class ScreenEstoque(Screen):
+
+    BRAND_NOTEBOOK = ['Acer','Apple','Asus','Dell','HP','Lenovo','Positivo']
+    BRAND_LIQUID = ['Arno','Mondial']
+    marca = []
+
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
         self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
+    def touch(self, msg=''):
+
+        # lista_txt = open('lista_aparelho.txt','r')
+        # lista = lista_txt.read()
+
+        if msg == 'Marca':
+            self.marcas = ['AOC','Brastemp','Britania','CCE','Consul','Electrolux','Gradiente','JBL','LG','Oster',
+                     'Panasonic','Philco','Philips','Pioneer','Sansung','Semp',
+                     'Sony','TCL','Tochiba']  #########
+            self.marcas += self.BRAND_LIQUID
+            self.marcas += self.BRAND_NOTEBOOK
+            self.modo = 'Marca'
+        else:
+            self.marcas = ['Tv','Som','PC','Notebook','Batedeira','Micro-ondas','Liquidificador','Aspirador',
+                     'Ferro','Fogão','Geladeira']
+            self.modo = 'Aparelho'
+
+        self.lista = [
+            {
+                "viewclass": "IconListItem",
+                "icons": "devices",
+                "text": str(i),
+                "height": dp(56),
+                # "callback": self.inserir,
+                "on_release": (lambda x=i: self.inserir(x)),
+            } for i in self.marcas]
+
+        self.menu_widget = MDDropdownMenu(
+            caller=self.ids.marca,
+            items=self.lista,
+            position='bottom',
+            width_mult=4
+        )
+        self.menu_widget.open()
+
+    def inserir(self, x=''):  ##########
+
+        #Here is to switc between the Brand and Device list
+        #Aqui é para alternar entre a lista de marcas e dispositivos
+        if self.modo == 'Marca':
+            self.ids.marca.text = str(x)
+        else:
+            self.ids.aparelho.text = str(x)
+
+        self.menu_widget.dismiss()
 
     def closed(self,roots):
         self.remove_widget(roots)
@@ -1224,7 +1405,7 @@ class ScreenEstoque(Screen):
         self.add_widget(InsertDeviceParts())
 
 
-class InsertDeviceParts(Scatter):
+class InsertDeviceParts(Scatter):       # 1415
     quant = 0
     pos_erro = 0
     pos_cont = 0
@@ -1505,10 +1686,109 @@ class Rotulo_garantia(MDCard):
         self.output = str(output)
         self.warranty   = str(warranty)
 
-
 class ScreenPartsNew(Screen):
-    pass
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
 
+        self.user_folder = MDApp.get_running_app().user_data_dir + '/'
+
+    def input(self):
+        try:
+            quantidade = int(self.ids.qtde.text)
+        except ValueError:
+            quantidade = 0
+
+
+        try:
+            # if self.ids.id_valor.text >= 'a' or self.ids.id_valor.text >= 'A':
+            if self.ids.id_valor.text.isalpha():
+                self.ids.id_valor.text = ''
+                valor = 0.0
+            else:
+                valor = float(self.ids.id_valor.text.replace(',','.'))
+        except ValueError:
+            valor = 0.0
+
+
+        try:
+            self.ids.valor_compra.text.replace(',', '.')
+            valor_compra = float(self.ids.valor_compra.text)
+        except ValueError:
+            valor_compra = 1
+
+
+        soma = valor * quantidade
+
+        margen_lucro = (valor - valor_compra) * 100 / valor_compra
+
+        self.ids.valor_soma.text = str(soma) + ' R$'
+
+        if self.ids.id_valor.text == '' or self.ids.valor_compra.text == '':
+            self.ids.margen_lucro.text = '0.0'
+        else:
+            if margen_lucro <= 0:
+                self.ids.margen_lucro.color = (1,0,0,1)
+            else:
+                self.ids.margen_lucro.color = (1,1,1,1)
+
+            self.ids.margen_lucro.text = f"{float(margen_lucro):.1f} %"
+
+
+    def focuss(self):
+        try:
+            self.ids.id_valor.text = str(float(self.ids.id_valor.text))
+        except:
+            pass
+
+        try:
+            self.ids.valor_compra.text = str(float(self.ids.valor_compra.text))
+        except:
+            pass
+
+    def save_data(self):
+        pecas = self.ids.pecas.text
+        qtde = self.ids.qtde.text
+        modelo = self.ids.modelo.text
+        valor_venda = self.ids.id_valor.text
+        valor_compra = self.ids.valor_compra.text
+
+        conn = sqlite3.connect(self.user_folder + 'Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO estoque_novos(Peças, QTD, Modelo, Valor_venda, Valor_compra)'
+                       'VALUES("'+pecas+'", "'+qtde+'", "'+modelo+'", "'+valor_venda+'", "'+valor_compra+'")')
+        conn.commit()
+        toast('Dados Salvos!',duration=4)
+        self.clear_field()
+        self.on_pre_enter()
+
+    def clear_field(self):
+        self.ids.pecas.text = ''
+        self.ids.qtde.text = ''
+        self.ids.modelo.text = ''
+        self.ids.id_valor.text = ''
+        self.ids.valor_compra.text = ''
+
+    def geting_data(self):
+        conn = sqlite3.connect(self.user_folder + 'Eletronica.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM estoque_novos')
+        return cursor.fetchall()
+
+    def on_pre_enter(self):
+        dados = self.geting_data()
+        self.ids.scroll.clear_widgets()
+
+        for dado in dados:
+            self.ids.scroll.add_widget(TemplateData(dado[1], dado[2], dado[3], dado[4]))
+
+class TemplateData(MDBoxLayout):
+
+    def __init__(self, pecas='', qtd=0, modelo='', valor=0, **kwargs):
+        super().__init__(**kwargs)
+        self.pecas = str(pecas)
+        self.qtd = str(qtd)
+        self.modelo = str(modelo)
+        self.valor = str(valor)
 
 class SmartTile(SmartTileWithStar):
     def __init__(self,img='', img_text='',**kwargs):
@@ -1548,6 +1828,7 @@ class ImageParts(MDBoxLayout):
 class EletronicaApp(MDApp):
     def build(self):
         Builder.load_string(open('kv_eletronica.kv', encoding='utf-8').read())
+        Builder.load_string(open('modulos/News.kv', encoding='utf-8').read())
         # Builder.load_string(open('screens.kv', encoding='utf-8').read())
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.primary_palette = 'Blue'
